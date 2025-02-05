@@ -1,0 +1,14 @@
+{# templates/usuarios_edit.html #}
+{% extends '_base.html' %}
+
+{% block content %}
+  <div class="container">
+    <h1>Editar Usuario</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+      <a href="{% url 'usuarios:detail' usuario.id %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+  </div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{# templates/usuario_form.html #}
+{% extends '_base.html' %}
+
+{% block content %}
+  <div class="container">
+    <h1>{% if usuario.id %}Editar Usuario{% else %}Crear Usuario{% endif %}</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+
+      <button type="submit" class="btn btn-success">{% if usuario.id %}Guardar Cambios{% else %}Crear Usuario{% endif %}</button>
+      {% if usuario.id %}
+        <a href="{% url 'usuarios:detail' usuario.id %}" class="btn btn-secondary">Cancelar</a>
+      {% else %}
+        <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">Cancelar</a>
+      {% endif %}
+    </form>
+  </div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{# templates/usuarios_confirm_delete.html #}
+{% extends '_base.html' %}
+
+{% block content %}
+  <div class="container">
+    <h1>Eliminar Usuario</h1>
+    <p>Estás a punto de eliminar a {{ usuario.nombre }} {{ usuario.apellidos }}. Esta acción no se puede deshacer.</p>
+
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Confirmar Eliminación</button>
+      <a href="{% url 'usuarios:detail' usuario.id %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+  </div>
+{% endblock %}

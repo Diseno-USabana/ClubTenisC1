@@ -28,14 +28,14 @@ class UsuarioListView(ListView):
 
 class UsuarioDetailView(DetailView):
     model = Usuario
-    template_name = 'usuarios_detail.html'
+    #template_name = 'usuarios_detail.html'
     context_object_name = 'usuario'
     pk_url_kwarg = 'usuario_id'
 
 class UsuarioUpdateView(UpdateView):
     model = Usuario
     form_class = UsuarioForm
-    template_name = 'usuarios_edit.html'
+    #template_name = 'usuarios_edit.html'
     context_object_name = 'usuario'
     pk_url_kwarg = 'usuario_id'
 
@@ -44,7 +44,7 @@ class UsuarioUpdateView(UpdateView):
 
 class UsuarioDeleteView(DeleteView):
     model = Usuario
-    template_name = 'usuarios_confirm_delete.html'
+    #template_name = 'usuarios_confirm_delete.html'
     context_object_name = 'usuario'
     pk_url_kwarg = 'usuario_id'
     success_url = reverse_lazy('usuarios:list')
