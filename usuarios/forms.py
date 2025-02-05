@@ -9,7 +9,7 @@ class UsuarioForm(forms.ModelForm):
             'rol',
             'nombre',
             'apellidos',
-            'email',
+            'correo',
             'telefono',
             'password',
             'tipo_documento',
@@ -26,7 +26,6 @@ class RegistrationForm(forms.ModelForm):
     class Meta:
         model = Usuario
         fields = [
-            'username',
             'nombre',
             'apellidos',
             'telefono',

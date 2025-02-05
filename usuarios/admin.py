@@ -4,17 +4,17 @@ from .models import Usuario, Categoria
 
 class UsuarioAdmin(admin.ModelAdmin):
     list_display = (
-        'username', 'nombre', 'apellidos', 'email', 'telefono', 'rol',
+        'nombre', 'apellidos', 'correo', 'telefono', 'rol',
         'tipo_documento', 'num_documento', 'fecha_nacimiento',
         'id_categoria', 'estado', 'matricula'
     )
-    search_fields = ('nombre', 'apellidos', 'email', 'num_documento')
+    search_fields = ('nombre', 'apellidos', 'correo', 'num_documento')
     list_filter = ('rol', 'estado', 'tipo_documento')
     
     # Organizar los campos en secciones dentro del formulario
     fieldsets = (
         (None, {
-            'fields': ('username', 'rol', 'nombre', 'apellidos', 'email', 'telefono', 'password')
+            'fields': ('rol', 'nombre', 'apellidos', 'correo', 'telefono', 'password')
         }),
         ('Datos de identificación', {
             'fields': ('tipo_documento', 'num_documento')
