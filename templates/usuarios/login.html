@@ -1,0 +1,32 @@
+{# templates/usuarios/login.html #}
+{% extends '_base.html' %}
+
+{% block content %}
+<div class="auth-container" style="max-width: 400px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
+  <h2 style="text-align: center;">
+    {% if action == "login" %}
+      Iniciar Sesión
+    {% else %}
+      Registro de Usuario
+    {% endif %}
+  </h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" style="width: 100%; padding: 10px; background-color: #89023e; color: white; border: none; border-radius: 5px;">
+      {% if action == "login" %}
+        Ingresar
+      {% else %}
+        Registrarse
+      {% endif %}
+    </button>
+  </form>
+  <div style="text-align: center; margin-top: 15px;">
+    {% if action == "login" %}
+      <p>¿No te has registrado? <a href="{% url 'usuarios:register' %}">¡Crea tu cuenta!</a></p>
+    {% else %}
+      <p>¿Ya tienes cuenta? <a href="{% url 'usuarios:login' %}">Inicia sesión</a></p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
