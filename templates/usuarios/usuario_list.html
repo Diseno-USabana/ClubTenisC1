@@ -1,0 +1,18 @@
+{# templates/usuarios_list.html #}
+{% extends '_base.html' %}
+
+{% block content %}
+  <h1>Usuarios</h1>
+  <hr>
+  <ul>
+    {% for usuario in usuarios %}
+      <li>
+        <a href="{% url 'usuarios:detail' usuario.id %}">
+          {{ usuario.nombre }} {{ usuario.apellidos }} - Estado: {{ usuario.estado }}
+        </a>
+      </li>
+    {% empty %}
+      <li>No hay usuarios disponibles.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
