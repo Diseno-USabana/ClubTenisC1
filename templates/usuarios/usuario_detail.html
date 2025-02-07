@@ -1,28 +1,27 @@
-{# templates/usuarios_detail.html #}
+{# templates/usuarios/usuario_detail.html #}
 {% extends '_base.html' %}
 
-{% block content %}
-  <h1>Información del Usuario</h1>
-  <hr>
-  <p><strong>Nombre:</strong> {{ usuario.nombre }}</p>
-  <p><strong>Apellidos:</strong> {{ usuario.apellidos }}</p>
-  <p><strong>Email:</strong> {{ usuario.email }}</p>
-  <p><strong>Teléfono:</strong> {{ usuario.telefono }}</p>
-  <p><strong>Tipo de Documento:</strong> {{ usuario.tipo_documento }}</p>
-  <p><strong>Número de Documento:</strong> {{ usuario.num_documento }}</p>
-  <p><strong>Fecha de Nacimiento:</strong> {{ usuario.fecha_nacimiento }}</p>
-  <p><strong>Estado:</strong> {{ usuario.estado }}</p>
-  
-  {# Opcional: Cálculo de la edad (si se dispone de una variable 'today' en el contexto) #}
-  {% if usuario.fecha_nacimiento and today %}
-    {% with edad=today.year|add:"-{{ usuario.fecha_nacimiento.year }}" %}
-      <p><strong>Edad:</strong> {{ edad }}</p>
-    {% endwith %}
-  {% endif %}
+{% load static %}
 
-  <div>
-    <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">Regresar</a>
-    <a href="{% url 'usuarios:edit' usuario.id %}" class="btn btn-primary">Editar</a>
-    <a href="{% url 'usuarios:delete' usuario.id %}" class="btn btn-danger">Eliminar</a>
-  </div>
+{% block content %}
+<link rel="stylesheet" href="{% static 'usuarios/css/usuario_detail.css' %}">
+
+<div class="container">
+    <h1>Información del Usuario</h1>
+    <hr>
+    <p><strong>Nombre:</strong> {{ usuario.nombre }}</p>
+    <p><strong>Apellidos:</strong> {{ usuario.apellidos }}</p>
+    <p><strong>Correo:</strong> {{ usuario.correo }}</p>
+    <p><strong>Teléfono:</strong> {{ usuario.telefono }}</p>
+    <p><strong>Tipo de Documento:</strong> {{ usuario.tipo_documento }}</p>
+    <p><strong>Número de Documento:</strong> {{ usuario.num_documento }}</p>
+    <p><strong>Fecha de Nacimiento:</strong> {{ usuario.fecha_nacimiento }}</p>
+    <p><strong>Estado:</strong> {{ usuario.estado }}</p>
+    
+    <div>
+        <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">Regresar</a>
+        <a href="{% url 'usuarios:edit' usuario.id %}" class="btn btn-primary">Editar</a>
+        <a href="{% url 'usuarios:delete' usuario.id %}" class="btn btn-danger">Eliminar</a>
+    </div>
+</div>
 {% endblock %}
