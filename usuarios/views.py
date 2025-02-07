@@ -1,3 +1,4 @@
+# usuarios/views.py
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 from django.views.generic.edit import FormView
@@ -5,7 +6,10 @@ from django.contrib import messages
 from .models import Usuario
 from .forms import UsuarioForm, RegistrationForm, CustomLoginForm
 
-class UsuarioListView(ListView):
+# Importamos los mixins desde la carpeta utils (asegúrate de que la carpeta utils esté en PYTHONPATH)
+from utils.role_mixins import AdminRequiredForListMixin, SoloPropioMixin
+
+class UsuarioListView(AdminRequiredForListMixin, ListView):
     model = Usuario
     context_object_name = 'usuarios'
 
@@ -22,22 +26,22 @@ class UsuarioListView(ListView):
             qs = qs.filter(estado=estado_filtrado)
         return qs
 
-class UsuarioDetailView(DetailView):
+class UsuarioDetailView(SoloPropioMixin, DetailView):
     model = Usuario
     context_object_name = 'usuario'
     pk_url_kwarg = 'usuario_id'
 
-class UsuarioUpdateView(UpdateView):
+class UsuarioUpdateView(SoloPropioMixin, UpdateView):
     model = Usuario
     form_class = UsuarioForm
     context_object_name = 'usuario'
     pk_url_kwarg = 'usuario_id'
-    template_name = 'usuarios/usuario_edit.html'  # Agregamos esta línea
+    template_name = 'usuarios/usuario_edit.html'
 
     def get_success_url(self):
         return reverse('usuarios:detail', kwargs={'usuario_id': self.object.id})
 
-class UsuarioDeleteView(DeleteView):
+class UsuarioDeleteView(SoloPropioMixin, DeleteView):
     model = Usuario
     context_object_name = 'usuario'
     pk_url_kwarg = 'usuario_id'
@@ -45,12 +49,12 @@ class UsuarioDeleteView(DeleteView):
 
 class CustomLoginView(FormView):
     """
-    Vista para el login. Utiliza el template 'usuarios/login.html' y agrega en el contexto
-    la variable 'action' para indicar que se trata de la vista de login.
+    Vista para el login. Utiliza el template 'usuarios/login.html' y asigna en la sesión
+    el id del usuario logueado.
     """
     template_name = 'usuarios/login.html'
     form_class = CustomLoginForm
-    success_url = reverse_lazy('usuarios:list')  # Redirige a la lista de usuarios u otra página deseada
+    success_url = reverse_lazy('usuarios:list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -71,7 +75,7 @@ class RegistrationView(FormView):
     """
     template_name = 'usuarios/login.html'
     form_class = RegistrationForm
-    success_url = reverse_lazy('usuarios:login')  # Redirige al login luego de registrarse
+    success_url = reverse_lazy('usuarios:login')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
