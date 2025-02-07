@@ -1,6 +1,5 @@
 {# templates/usuarios/usuario_detail.html #}
 {% extends '_base.html' %}
-
 {% load static %}
 
 {% block content %}
@@ -21,7 +20,11 @@
     <div>
         <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">Regresar</a>
         <a href="{% url 'usuarios:edit' usuario.id %}" class="btn btn-primary">Editar</a>
-        <a href="{% url 'usuarios:delete' usuario.id %}" class="btn btn-danger">Eliminar</a>
+        {# Solo muestra el botón de eliminar si el usuario logueado es admin #}
+        {% if current_user and current_user.rol == 'admin' %}
+            <a href="{% url 'usuarios:delete' usuario.id %}" class="btn btn-danger">Eliminar</a>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
+

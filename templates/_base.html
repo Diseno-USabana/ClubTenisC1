@@ -17,13 +17,21 @@
                 </li>
                 <!-- Mostrar Sign Out si hay usuario en sesión, de lo contrario Sign In -->
                 {% if request.session.custom_user_id %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'usuarios:logout' %}">Sign Out</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'usuarios:logout' %}">Sign Out</a>
+                    </li>
+                    {# Botón Self que muestra el nombre y rol del usuario logueado #}
+                    {% if current_user %}
+                        <li class="nav-item">
+                            <button class="btn btn-outline-primary" disabled>
+                                {{ current_user.nombre }} ({{ current_user.rol }})
+                            </button>
+                        </li>
+                    {% endif %}
                 {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'usuarios:login' %}">Sign In</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'usuarios:login' %}">Sign In</a>
+                    </li>
                 {% endif %}
                 <!-- Puedes agregar más enlaces de navegación según necesites -->
             </ul>

@@ -33,6 +33,16 @@ class UsuarioDetailView(SoloPropioMixin, DetailView):
     context_object_name = 'usuario'
     pk_url_kwarg = 'usuario_id'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Obtenemos el id del usuario desde la sesión y lo convertimos en objeto Usuario
+        current_user_id = self.request.session.get('custom_user_id')
+        try:
+            context['current_user'] = Usuario.objects.get(id=current_user_id)
+        except Usuario.DoesNotExist:
+            context['current_user'] = None
+        return context
+
 class UsuarioUpdateView(SoloPropioMixin, UpdateView):
     model = Usuario
     form_class = UsuarioForm
@@ -48,6 +58,19 @@ class UsuarioDeleteView(SoloPropioMixin, DeleteView):
     context_object_name = 'usuario'
     pk_url_kwarg = 'usuario_id'
     success_url = reverse_lazy('usuarios:list')
+
+    def dispatch(self, request, *args, **kwargs):
+        # Obtenemos el usuario logueado usando el método del mixin
+        current_user = self.get_current_user(request)
+        if not current_user:
+            return redirect('usuarios:login')
+        # Solo el admin puede eliminar; aunque el mixin SoloPropioMixin permita a un usuario acceder a su propio registro,
+        # aquí se fuerza que si el rol no es 'admin' se bloquee la acción.
+        if current_user.rol != 'admin':
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied("Solo el admin puede eliminar usuarios.")
+        return super().dispatch(request, *args, **kwargs)
+
 
 class CustomLoginView(FormView):
     """
