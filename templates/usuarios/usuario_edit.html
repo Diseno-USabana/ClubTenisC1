@@ -1,14 +1,19 @@
-{# templates/usuarios_edit.html #}
+{# templates/usuarios/usuario_edit.html #}
 {% extends '_base.html' %}
 
+{% load static %}
+
 {% block content %}
-  <div class="container">
+<link rel="stylesheet" href="{% static 'usuarios/css/usuario_edit.css' %}">
+<div class="container">
     <h1>Editar Usuario</h1>
-    <form method="post">
+    <form method="post" novalidate>
       {% csrf_token %}
       {{ form.as_p }}
-      <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+      <button type="submit" class="btn-primary">Guardar Cambios</button>
       <a href="{% url 'usuarios:detail' usuario.id %}" class="btn btn-secondary">Cancelar</a>
     </form>
-  </div>
+</div>
+<script src="{% static 'usuarios/js/usuario_edit.js' %}"></script>
 {% endblock %}
+

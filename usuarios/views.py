@@ -32,6 +32,7 @@ class UsuarioUpdateView(UpdateView):
     form_class = UsuarioForm
     context_object_name = 'usuario'
     pk_url_kwarg = 'usuario_id'
+    template_name = 'usuarios/usuario_edit.html'  # Agregamos esta línea
 
     def get_success_url(self):
         return reverse('usuarios:detail', kwargs={'usuario_id': self.object.id})
