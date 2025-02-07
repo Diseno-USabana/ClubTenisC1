@@ -15,7 +15,17 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'usuarios:list' %}">Usuarios</a>
                 </li>
-                <!-- Agrega más enlaces de navegación según necesites -->
+                <!-- Mostrar Sign Out si hay usuario en sesión, de lo contrario Sign In -->
+                {% if request.session.custom_user_id %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'usuarios:logout' %}">Sign Out</a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'usuarios:login' %}">Sign In</a>
+                </li>
+                {% endif %}
+                <!-- Puedes agregar más enlaces de navegación según necesites -->
             </ul>
         </nav>
     </header>

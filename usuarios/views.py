@@ -5,6 +5,8 @@ from django.views.generic.edit import FormView
 from django.contrib import messages
 from .models import Usuario
 from .forms import UsuarioForm, RegistrationForm, CustomLoginForm
+from django.views import View
+from django.shortcuts import redirect
 
 # Importamos los mixins desde la carpeta utils (asegúrate de que la carpeta utils esté en PYTHONPATH)
 from utils.role_mixins import AdminRequiredForListMixin, SoloPropioMixin
@@ -67,6 +69,16 @@ class CustomLoginView(FormView):
         self.request.session['custom_user_id'] = user.id
         messages.success(self.request, "Login exitoso")
         return super().form_valid(form)
+    
+class CustomLogoutView(View):
+    """
+    Vista para cerrar sesión. Elimina la variable de sesión 'custom_user_id'
+    y redirige al login.
+    """
+    def get(self, request, *args, **kwargs):
+        request.session.flush()  # Limpia toda la sesión
+        messages.info(request, "Has cerrado sesión")
+        return redirect('usuarios:login')
 
 class RegistrationView(FormView):
     """
