@@ -15,6 +15,12 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'usuarios:list' %}">Usuarios</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'eventos:torneos_list' %}">Torneos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'eventos:entrenamientos_list' %}">Entrenamientos</a>
+                </li>
                 <!-- Mostrar Sign Out si hay usuario en sesión, de lo contrario Sign In -->
                 {% if request.session.custom_user_id %}
                     <li class="nav-item">

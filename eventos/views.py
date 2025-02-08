@@ -33,7 +33,6 @@ class AdminEntrenadorRequiredMixin(UsuarioSessionMixin):
 # ======================================
 # Lista de Entrenamientos
 # ======================================
-# ... (código previo de imports y get_current_user)
 
 class EntrenamientoListView(ListView):
     model = Evento
@@ -46,20 +45,23 @@ class EntrenamientoListView(ListView):
         if current_user and current_user.rol == 'miembro':
             # Filtrar por la categoría del miembro
             qs = qs.filter(categoria=current_user.id_categoria)
-            # Filtrar solo aquellos con cupo disponible
             filtrados = []
             for evento in qs:
-                if evento.asistencias_entrenamiento.count() < evento.capacidad:
+                # Si el usuario ya está inscrito, se incluye aunque no haya cupo
+                if AsistenciaEntrenamiento.objects.filter(usuario=current_user, entrenamiento=evento).exists():
                     filtrados.append(evento)
+                else:
+                    # Solo se incluye si hay cupo disponible
+                    if evento.asistencias_entrenamiento.count() < evento.capacidad:
+                        filtrados.append(evento)
             qs = filtrados
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         current_user = get_current_user(self.request)
-        print(current_user)
         if current_user:
-            context['current_role'] = current_user.rol  # Agregamos el rol actual al contexto
+            context['current_role'] = current_user.rol  # Se agrega el rol actual al contexto
             # Permitir crear eventos solo a admin y entrenador
             context['can_create'] = current_user.rol in ['admin', 'entrenador']
             if current_user.rol == 'miembro':
@@ -67,8 +69,6 @@ class EntrenamientoListView(ListView):
                 context['user_inscripciones_entrenamiento'] = [ins.entrenamiento.id for ins in insc_ent]
         return context
 
-
-        return context
 
 # ======================================
 # Lista de Torneos

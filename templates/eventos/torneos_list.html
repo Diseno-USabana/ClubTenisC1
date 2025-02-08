@@ -22,9 +22,6 @@
             Duración: {{ evento.duracion }} minutos<br>
             Costo: {{ evento.costo }}
           </p>
-
-          {# El Miembro ya no se inscribe directamente aquí; 
-             redirige al detalle para mostrar la sección de pago #}
           <p>
             <a href="{% url 'eventos:torneo_detail' evento.id %}">Ver Detalle</a>
           </p>
