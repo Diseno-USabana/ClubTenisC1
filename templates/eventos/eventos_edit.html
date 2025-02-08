@@ -1,0 +1,21 @@
+{# templates/eventos/eventos_edit.html #}
+{% extends '_base.html' %}
+
+{% block content %}
+  <h1>{% if object %}Editar Evento{% else %}Crear Evento{% endif %}</h1>
+  
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Guardar</button>
+  </form>
+
+  {% if object %}
+    <hr>
+    <h2>Eliminar Evento</h2>
+    <form method="post" action="{% url 'eventos:delete' object.id %}" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este evento?');">
+      {% csrf_token %}
+      <button type="submit" style="background-color: red; color: white;">Eliminar Evento</button>
+    </form>
+  {% endif %}
+{% endblock %}
