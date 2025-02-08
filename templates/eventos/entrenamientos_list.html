@@ -1,0 +1,43 @@
+{% extends '_base.html' %}
+
+{% block content %}
+  <h1>Entrenamientos Disponibles</h1>
+
+  {% if can_create %}
+    <p>
+      <a href="{% url 'eventos:create' %}?tipo=entrenamiento">
+        Crear Nuevo Entrenamiento
+      </a>
+    </p>
+  {% endif %}
+
+  {% if eventos %}
+    <ul>
+      {% for evento in eventos %}
+        <li>
+          <h2>{{ evento.nombre }}</h2>
+          <p>
+            Fecha: {{ evento.fecha }} – Hora: {{ evento.hora }}<br>
+            Duración: {{ evento.duracion }} minutos<br>
+            Cupo: {{ evento.asistencias_entrenamiento.count }} / {{ evento.capacidad }}
+          </p>
+          {% if user_inscripciones_entrenamiento %}
+            {% if evento.id in user_inscripciones_entrenamiento %}
+              <form action="{% url 'eventos:desinscribirse_entrenamiento' evento.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit">Desinscribirse</button>
+              </form>
+            {% else %}
+              <form action="{% url 'eventos:inscribirse_entrenamiento' evento.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit">Inscribirse</button>
+              </form>
+            {% endif %}
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No hay entrenamientos disponibles.</p>
+  {% endif %}
+{% endblock %}
