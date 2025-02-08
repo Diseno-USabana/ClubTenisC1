@@ -102,7 +102,13 @@ class EventoCreateView(AdminEntrenadorRequiredMixin, CreateView):
     form_class = EventoForm
     template_name = 'eventos/eventos_edit.html'
     # Puedes redirigir a la lista de entrenamientos o torneos según convenga.
-    success_url = reverse_lazy('eventos:entrenamientos_list')
+    def get_success_url(self):
+        # Supongamos que el tipo se envía como parámetro GET, por ejemplo ?tipo=torneo
+        tipo = self.request.GET.get('tipo', 'entrenamiento')
+        if tipo == 'torneo':
+            return reverse_lazy('eventos:torneos_list')
+        else:
+            return reverse_lazy('eventos:entrenamientos_list')
 
     def form_valid(self, form):
         current_user = get_current_user(self.request)
