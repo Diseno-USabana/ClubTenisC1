@@ -1,0 +1,27 @@
+{% extends '_base.html' %}
+
+{% block content %}
+  <h1>Detalle del Entrenamiento</h1>
+
+  <p><strong>Nombre:</strong> {{ evento.nombre }}</p>
+  <p><strong>Fecha:</strong> {{ evento.fecha }}</p>
+  <p><strong>Hora:</strong> {{ evento.hora }}</p>
+  <p><strong>Duración:</strong> {{ evento.duracion }} minutos</p>
+  <p><strong>Cupo:</strong> {{ evento.asistencias_entrenamiento.count }} / {{ evento.capacidad }}</p>
+
+  {# Si es admin/entrenador, permitir editar/eliminar #}
+  {% if can_edit %}
+    <hr>
+    <h2>Administración</h2>
+    <a href="{% url 'eventos:edit' evento.id %}">Editar Entrenamiento</a> |
+    <form action="{% url 'eventos:delete' evento.id %}" method="post" style="display:inline;" 
+          onsubmit="return confirm('¿Seguro que deseas eliminar este entrenamiento?');">
+      {% csrf_token %}
+      <button type="submit" style="background-color:red; color:white;">Eliminar</button>
+    </form>
+  {% endif %}
+
+  <p>
+    <a href="{% url 'eventos:entrenamientos_list' %}">Regresar a la lista de entrenamientos</a>
+  </p>
+{% endblock %}

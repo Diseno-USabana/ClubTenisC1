@@ -1,6 +1,6 @@
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from .models import Evento, AsistenciaEntrenamiento, AsistenciaTorneo, Pago
@@ -33,6 +33,8 @@ class AdminEntrenadorRequiredMixin(UsuarioSessionMixin):
 # ======================================
 # Lista de Entrenamientos
 # ======================================
+# ... (código previo de imports y get_current_user)
+
 class EntrenamientoListView(ListView):
     model = Evento
     template_name = 'eventos/entrenamientos_list.html'
@@ -55,12 +57,17 @@ class EntrenamientoListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         current_user = get_current_user(self.request)
+        print(current_user)
         if current_user:
+            context['current_role'] = current_user.rol  # Agregamos el rol actual al contexto
             # Permitir crear eventos solo a admin y entrenador
             context['can_create'] = current_user.rol in ['admin', 'entrenador']
             if current_user.rol == 'miembro':
                 insc_ent = AsistenciaEntrenamiento.objects.filter(usuario=current_user)
                 context['user_inscripciones_entrenamiento'] = [ins.entrenamiento.id for ins in insc_ent]
+        return context
+
+
         return context
 
 # ======================================
@@ -112,6 +119,50 @@ class EventoDeleteView(AdminEntrenadorRequiredMixin, DeleteView):
     model = Evento
     template_name = 'eventos/eventos_confirm_delete.html'
     success_url = reverse_lazy('eventos:entrenamientos_list')
+
+class EntrenamientoDetailView(DetailView):
+    model = Evento
+    template_name = 'eventos/entrenamientos_detail.html'
+    context_object_name = 'evento'
+    pk_url_kwarg = 'pk'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        current_user = get_current_user(self.request)
+        context['can_edit'] = False
+        context['user_is_member'] = False
+        if current_user:
+            # Si es admin o entrenador, puede editar
+            if current_user.rol in ['admin','entrenador']:
+                context['can_edit'] = True
+            # Si es miembro, no puede editar, pero marcamos True
+            if current_user.rol == 'miembro':
+                context['user_is_member'] = True
+        return context
+
+class TorneoDetailView(DetailView):
+    model = Evento
+    template_name = 'eventos/torneos_detail.html'
+    context_object_name = 'evento'
+    pk_url_kwarg = 'pk'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        current_user = get_current_user(self.request)
+        context['can_edit'] = False
+        context['user_is_member'] = False
+        if current_user:
+            # Si es admin o entrenador, puede editar
+            if current_user.rol in ['admin','entrenador']:
+                context['can_edit'] = True
+            # Si es miembro, marcamos True
+            if current_user.rol == 'miembro':
+                context['user_is_member'] = True
+            # Verificar si está inscrito
+            asistencia = AsistenciaTorneo.objects.filter(usuario=current_user, torneo=self.object).first()
+            context['user_inscrito'] = True if asistencia else False
+        return context
+
 
 # ======================================
 # Vistas para Inscripción/Desinscripción

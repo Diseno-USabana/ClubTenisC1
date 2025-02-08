@@ -3,6 +3,7 @@
 {% block content %}
   <h1>Torneos Disponibles</h1>
 
+  {# Opción para crear un nuevo torneo (solo admin o entrenador) #}
   {% if can_create %}
     <p>
       <a href="{% url 'eventos:create' %}?tipo=torneo">
@@ -17,23 +18,16 @@
         <li>
           <h2>{{ evento.nombre }}</h2>
           <p>
-            Fecha: {{ evento.fecha }} – Hora: {{ evento.hora }}<br>
+            Fecha: {{ evento.fecha }} — Hora: {{ evento.hora }}<br>
             Duración: {{ evento.duracion }} minutos<br>
             Costo: {{ evento.costo }}
           </p>
-          {% if user_inscripciones_torneo %}
-            {% if evento.id in user_inscripciones_torneo %}
-              <form action="{% url 'eventos:desinscribirse_torneo' evento.id %}" method="post">
-                {% csrf_token %}
-                <button type="submit">Cancelar Inscripción</button>
-              </form>
-            {% else %}
-              <form action="{% url 'eventos:inscribirse_torneo' evento.id %}" method="post">
-                {% csrf_token %}
-                <button type="submit">Pagar e Inscribirse</button>
-              </form>
-            {% endif %}
-          {% endif %}
+
+          {# El Miembro ya no se inscribe directamente aquí; 
+             redirige al detalle para mostrar la sección de pago #}
+          <p>
+            <a href="{% url 'eventos:torneo_detail' evento.id %}">Ver Detalle</a>
+          </p>
         </li>
       {% endfor %}
     </ul>

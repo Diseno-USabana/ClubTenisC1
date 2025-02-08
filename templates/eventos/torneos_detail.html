@@ -1,0 +1,46 @@
+{% extends '_base.html' %}
+
+{% block content %}
+  <h1>Detalle del Torneo</h1>
+
+  <p><strong>Nombre:</strong> {{ evento.nombre }}</p>
+  <p><strong>Fecha:</strong> {{ evento.fecha }}</p>
+  <p><strong>Hora:</strong> {{ evento.hora }}</p>
+  <p><strong>Duración:</strong> {{ evento.duracion }} minutos</p>
+  <p><strong>Costo:</strong> {{ evento.costo }}</p>
+  
+  {# Lógica para miembros #}
+  {% if user_is_member %}
+    {% if user_inscrito %}
+      <p><em>Ya estás inscrito en este torneo.</em></p>
+      <form action="{% url 'eventos:desinscribirse_torneo' evento.id %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Desinscribirse</button>
+      </form>
+    {% else %}
+      <hr>
+      <h3>Pago Simbólico</h3>
+      <p>Para inscribirte al torneo, debes realizar un pago de <strong>{{ evento.costo }}</strong></p>
+      <form action="{% url 'eventos:inscribirse_torneo' evento.id %}" method="post">
+        {% csrf_token %}
+        <button type="submit" style="background-color: green; color: white;">Pagar e Inscribirse</button>
+      </form>
+    {% endif %}
+  {% endif %}
+
+  {# Lógica para admin/entrenador #}
+  {% if can_edit %}
+    <hr>
+    <h2>Administración</h2>
+    <a href="{% url 'eventos:edit' evento.id %}">Editar Torneo</a> |
+    <form action="{% url 'eventos:delete' evento.id %}" method="post" style="display:inline;"
+          onsubmit="return confirm('¿Seguro que deseas eliminar este torneo?');">
+      {% csrf_token %}
+      <button type="submit" style="background-color:red; color:white;">Eliminar</button>
+    </form>
+  {% endif %}
+
+  <p>
+    <a href="{% url 'eventos:torneos_list' %}">Regresar a la lista de torneos</a>
+  </p>
+{% endblock %}
