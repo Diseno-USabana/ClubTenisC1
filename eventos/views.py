@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 from .models import Evento, AsistenciaEntrenamiento, AsistenciaTorneo, Pago
 from .forms import EventoForm
+from django.utils import timezone
 from utils.role_mixins import UsuarioSessionMixin
 
 # Función auxiliar para obtener el usuario actual desde la sesión
@@ -33,7 +34,6 @@ class AdminEntrenadorRequiredMixin(UsuarioSessionMixin):
 # ======================================
 # Lista de Entrenamientos
 # ======================================
-
 class EntrenamientoListView(ListView):
     model = Evento
     template_name = 'eventos/entrenamientos_list.html'
@@ -41,34 +41,27 @@ class EntrenamientoListView(ListView):
 
     def get_queryset(self):
         current_user = get_current_user(self.request)
-        qs = super().get_queryset().filter(tipo='entrenamiento')
+        qs = super().get_queryset()
+        filtered_qs = filter_upcoming_events(qs, 'entrenamiento')
+        
         if current_user and current_user.rol == 'miembro':
-            # Filtrar por la categoría del miembro
-            qs = qs.filter(categoria=current_user.id_categoria)
-            filtrados = []
-            for evento in qs:
-                # Si el usuario ya está inscrito, se incluye aunque no haya cupo
-                if AsistenciaEntrenamiento.objects.filter(usuario=current_user, entrenamiento=evento).exists():
-                    filtrados.append(evento)
-                else:
-                    # Solo se incluye si hay cupo disponible
-                    if evento.asistencias_entrenamiento.count() < evento.capacidad:
-                        filtrados.append(evento)
-            qs = filtrados
-        return qs
+            # Filtrar por la categoría del miembro y asegurar que los eventos a los que está inscrito aparezcan
+            filtered_qs = filtered_qs.filter(categoria=current_user.id_categoria)
+            inscritos_qs = AsistenciaEntrenamiento.objects.filter(usuario=current_user, entrenamiento__in=filtered_qs)
+            inscritos_ids = inscritos_qs.values_list('entrenamiento_id', flat=True)
+            filtered_qs = filtered_qs | Evento.objects.filter(id__in=inscritos_ids)
+        
+        return filtered_qs.distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         current_user = get_current_user(self.request)
         if current_user:
-            context['current_role'] = current_user.rol  # Se agrega el rol actual al contexto
-            # Permitir crear eventos solo a admin y entrenador
             context['can_create'] = current_user.rol in ['admin', 'entrenador']
             if current_user.rol == 'miembro':
                 insc_ent = AsistenciaEntrenamiento.objects.filter(usuario=current_user)
                 context['user_inscripciones_entrenamiento'] = [ins.entrenamiento.id for ins in insc_ent]
         return context
-
 
 # ======================================
 # Lista de Torneos
@@ -79,9 +72,9 @@ class TorneoListView(ListView):
     context_object_name = 'eventos'
 
     def get_queryset(self):
-        # Mostrar todos los torneos
-        qs = super().get_queryset().filter(tipo='torneo')
-        return qs
+        qs = super().get_queryset()
+        filtered_qs = filter_upcoming_events(qs, 'torneo')
+        return filtered_qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -92,7 +85,6 @@ class TorneoListView(ListView):
                 insc_torneo = AsistenciaTorneo.objects.filter(usuario=current_user)
                 context['user_inscripciones_torneo'] = [ins.torneo.id for ins in insc_torneo]
         return context
-
 # ======================================
 # Vistas para Crear/Editar/Eliminar Eventos
 # (Se usan para ambos tipos)
@@ -260,3 +252,16 @@ def desinscribirse_torneo(request, evento_id):
     else:
         messages.info(request, "No estabas inscrito en este torneo.")
     return redirect('eventos:torneos_list')
+
+def filter_upcoming_events(queryset, event_type):
+    # Obtener la fecha y hora actuales
+    now = timezone.now()
+    upcoming_events = queryset.filter(
+        tipo=event_type,
+        fecha__gt=now.date()
+    ) | queryset.filter(
+        tipo=event_type,
+        fecha=now.date(),
+        hora__gte=now.time()
+    )
+    return upcoming_events
