@@ -10,20 +10,22 @@ class Evento(models.Model):
     ]
     entrenador = models.ForeignKey(
         Usuario, 
-        on_delete=models.CASCADE, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
         related_name='eventos_creados'
     )
     # Para torneos, este campo será nulo.
     categoria = models.ForeignKey(
         Categoria, 
-        on_delete=models.CASCADE, 
+        on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
         help_text="Null si es torneo"
     )
     nombre = models.CharField(max_length=255)
     fecha = models.DateField()
-    hora = models.TimeField()
+    hora = models.TimeField() 
     capacidad = models.IntegerField(
         default=12,
         help_text="Default 12"
@@ -47,6 +49,7 @@ class Evento(models.Model):
 
 class AsistenciaEntrenamiento(models.Model):
     ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
         ('presente', 'Presente'),
         ('ausente', 'Ausente'),
     ]
@@ -58,7 +61,8 @@ class AsistenciaEntrenamiento(models.Model):
     )
     estado = models.CharField(
         max_length=20, 
-        choices=ESTADO_CHOICES
+        choices=ESTADO_CHOICES,
+        default='pendiente'
     )
 
     def __str__(self):
@@ -66,13 +70,13 @@ class AsistenciaEntrenamiento(models.Model):
 
 
 class AsistenciaTorneo(models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, blank=True, null=True)
     torneo = models.ForeignKey(
         Evento, 
         on_delete=models.CASCADE,
         related_name="asistencias_torneo"
     )
-    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, blank=True, null=True)
     pago = models.ForeignKey(
         Pago, 
         on_delete=models.SET_NULL, 

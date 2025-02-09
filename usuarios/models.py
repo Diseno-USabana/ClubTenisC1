@@ -15,13 +15,11 @@ class Usuario(models.Model):
             ('admin', 'Admin'),
             ('entrenador', 'Entrenador'),
             ('miembro', 'Miembro'),
-        ],
-        blank=True,
-        null=True
+        ]
     )
-    nombre = models.CharField(max_length=10, blank=True, null=True)
-    apellidos = models.CharField(max_length=100, blank=True, null=True)
-    correo = models.CharField(max_length=20, blank=True, null=True)
+    nombre = models.CharField(max_length=50, blank=True, null=True)
+    apellidos = models.CharField(max_length=50, blank=True, null=True)
+    correo = models.CharField(max_length=50)
     telefono = models.CharField(max_length=20, blank=True, null=True)
     password = models.CharField(max_length=128)
     tipo_documento = models.CharField(
@@ -29,6 +27,7 @@ class Usuario(models.Model):
         blank=True,
         null=True,
         choices=[
+            ('TI', 'TI'),
             ('CC', 'CC'),
             ('RC', 'RC'),
             ('CE', 'CE'),
@@ -45,7 +44,8 @@ class Usuario(models.Model):
             ('retirado', 'retirado'),
         ],
         blank=True,
-        null=True
+        null=True,
+        default='activo'
     )
     matricula = models.BooleanField(default=False, blank=True, null=True)
 
