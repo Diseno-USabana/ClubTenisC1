@@ -113,10 +113,12 @@ class RegistrationView(FormView):
 
     def form_valid(self, form):
         user = form.save(commit=False)
+        user.rol = 'miembro'
         user.estado = 'activo'
         if user.fecha_nacimiento:
             today = date.today()
             age = today.year - user.fecha_nacimiento.year  # Solo se usa el año
+            # Asignar la categoría según la edad
             if age < 6:
                 cat_name = "bola-roja"
             elif age < 10:
