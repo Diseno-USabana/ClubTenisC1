@@ -9,7 +9,6 @@ from django.views import View
 from django.shortcuts import redirect
 from datetime import date
 
-# Importamos los mixins desde utils (a nivel de proyecto)
 from utils.role_mixins import AdminRequiredForListMixin, SoloPropioMixin
 
 class UsuarioListView(AdminRequiredForListMixin, ListView):
@@ -115,20 +114,27 @@ class RegistrationView(FormView):
     def form_valid(self, form):
         user = form.save(commit=False)
         user.estado = 'activo'
-        # Calcular la categoría en base a la fecha de nacimiento
         if user.fecha_nacimiento:
             today = date.today()
-            age = today.year - user.fecha_nacimiento.year - (
-                (today.month, today.day) < (user.fecha_nacimiento.month, user.fecha_nacimiento.day)
-            )
-            if age < 10:
-                cat_name = "Infantil"
-            elif age < 18:
-                cat_name = "Adolescente"
+            age = today.year - user.fecha_nacimiento.year  # Solo se usa el año
+            if age < 6:
+                cat_name = "bola-roja"
+            elif age < 10:
+                cat_name = "bola-naranja"
+            elif age < 12:
+                cat_name = "bola-verde"
+            elif age < 14:
+                cat_name = "sub-14"
+            elif age < 16:
+                cat_name = "sub-16"
+            elif age <= 21:
+                cat_name = "sub-21"
             else:
-                cat_name = "Adulto"
+                # Adultos: se usa el valor del campo 'nivel'
+                cat_name = form.cleaned_data.get("nivel")
             categoria, created = Categoria.objects.get_or_create(nombre=cat_name)
             user.id_categoria = categoria
         user.set_password(form.cleaned_data['password'])
         user.save()
         return super().form_valid(form)
+

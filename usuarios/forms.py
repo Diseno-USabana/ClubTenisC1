@@ -22,10 +22,20 @@ class UsuarioForm(forms.ModelForm):
 class RegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput, label="Contraseña")
     password_confirm = forms.CharField(widget=forms.PasswordInput, label="Verificar contraseña")
+    # Campo opcional para nivel (solo requerido para adultos)
+    nivel = forms.ChoiceField(
+        choices=[
+            ("basico", "Basico"),
+            ("intermedio", "Intermedio"),
+            ("avanzado", "Avanzado")
+        ],
+        required=False,
+        label="Nivel de juego (Adultos)"
+    )
     
     class Meta:
         model = Usuario
-        # Se elimina 'id_categoria' para que se calcule en el backend
+        # Se elimina 'id_categoria'
         fields = [
             'nombre',
             'apellidos',
@@ -35,33 +45,43 @@ class RegistrationForm(forms.ModelForm):
             'tipo_documento',
             'num_documento',
             'fecha_nacimiento',
+            'nivel',
         ]
         widgets = {
-            # Hace que el input de fecha se renderice como date picker (HTML5)
+            # Renderiza la fecha como date picker HTML5
             'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
         }
     
-    def clean(self):
-        cleaned_data = super().clean()
-        # Convertir el correo a minúsculas para consistencia
-        correo = cleaned_data.get("correo")
-        if correo:
-            correo = correo.lower()
-            cleaned_data["correo"] = correo
-            # Validar que no exista ya un usuario con ese correo
-            if Usuario.objects.filter(correo=correo).exists():
-                self.add_error('correo', "Ya existe un usuario con ese correo")
-        # Validar que no exista ya un usuario con ese documento, si se ingresó
-        num_documento = cleaned_data.get("num_documento")
-        if num_documento:
-            if Usuario.objects.filter(num_documento=num_documento).exists():
-                self.add_error('num_documento', "Ya existe un usuario con ese documento")
-        
-        password = cleaned_data.get("password")
-        password_confirm = cleaned_data.get("password_confirm")
-        if password and password_confirm and password != password_confirm:
-            self.add_error('password_confirm', "Las contraseñas no coinciden")
-        return cleaned_data
+        def clean(self):
+            cleaned_data = super().clean()
+            # Convertir correo a minúsculas
+            correo = cleaned_data.get("correo")
+            if correo:
+                correo = correo.lower()
+                cleaned_data["correo"] = correo
+                if Usuario.objects.filter(correo=correo).exists():
+                    self.add_error('correo', "Ya existe un usuario con ese correo")
+            num_documento = cleaned_data.get("num_documento")
+            if num_documento:
+                if Usuario.objects.filter(num_documento=num_documento).exists():
+                    self.add_error('num_documento', "Ya existe un usuario con ese documento")
+            password = cleaned_data.get("password")
+            password_confirm = cleaned_data.get("password_confirm")
+            if password and password_confirm and password != password_confirm:
+                self.add_error('password_confirm', "Las contraseñas no coinciden")
+            
+            # Validar el campo 'nivel' si el usuario es adulto (edad >= 22), usando solo el año
+            fecha_nacimiento = cleaned_data.get("fecha_nacimiento")
+            if fecha_nacimiento:
+                from datetime import date
+                today = date.today()
+                age = today.year - fecha_nacimiento.year  # Solo se usa el año
+                if age >= 22:
+                    nivel = cleaned_data.get("nivel")
+                    if not nivel:
+                        self.add_error('nivel', "Debes seleccionar tu nivel de juego para adultos")
+            return cleaned_data
+
 
 class CustomLoginForm(forms.Form):
     correo = forms.CharField(label="Correo", max_length=50)
