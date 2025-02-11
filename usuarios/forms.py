@@ -30,7 +30,7 @@ class RegistrationForm(forms.ModelForm):
             ("avanzado", "Avanzado")
         ],
         required=False,
-        label="Nivel de juego (Adultos)"
+        label="Nivel de juego"
     )
     
     class Meta:
