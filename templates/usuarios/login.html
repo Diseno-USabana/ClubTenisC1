@@ -10,7 +10,7 @@
       Registro de Usuario
     {% endif %}
   </h2>
-  <form method="post">
+  <form method="post" id="authForm">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" style="width: 100%; padding: 10px; background-color: #89023e; color: white; border: none; border-radius: 5px;">
@@ -29,4 +29,7 @@
     {% endif %}
   </div>
 </div>
+{% if action == "register" %}
+  <script src="{% static 'usuarios/js/login.js' %}"></script>
+{% endif %}
 {% endblock %}

@@ -1,3 +1,4 @@
+# usuarios/forms.py
 from django import forms
 from .models import Usuario
 
@@ -24,6 +25,7 @@ class RegistrationForm(forms.ModelForm):
     
     class Meta:
         model = Usuario
+        # Se elimina 'id_categoria' para que se calcule en el backend
         fields = [
             'nombre',
             'apellidos',
@@ -33,15 +35,28 @@ class RegistrationForm(forms.ModelForm):
             'tipo_documento',
             'num_documento',
             'fecha_nacimiento',
-            'id_categoria',
         ]
+        widgets = {
+            # Hace que el input de fecha se renderice como date picker (HTML5)
+            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
+        }
     
     def clean(self):
         cleaned_data = super().clean()
         # Convertir el correo a minúsculas para consistencia
         correo = cleaned_data.get("correo")
         if correo:
-            cleaned_data["correo"] = correo.lower()
+            correo = correo.lower()
+            cleaned_data["correo"] = correo
+            # Validar que no exista ya un usuario con ese correo
+            if Usuario.objects.filter(correo=correo).exists():
+                self.add_error('correo', "Ya existe un usuario con ese correo")
+        # Validar que no exista ya un usuario con ese documento, si se ingresó
+        num_documento = cleaned_data.get("num_documento")
+        if num_documento:
+            if Usuario.objects.filter(num_documento=num_documento).exists():
+                self.add_error('num_documento', "Ya existe un usuario con ese documento")
+        
         password = cleaned_data.get("password")
         password_confirm = cleaned_data.get("password_confirm")
         if password and password_confirm and password != password_confirm:
@@ -57,7 +72,6 @@ class CustomLoginForm(forms.Form):
         correo = cleaned_data.get("correo")
         password = cleaned_data.get("password")
         if correo and password:
-            # Convertir el correo a minúsculas para comparar con lo almacenado
             correo = correo.lower()
             try:
                 user = Usuario.objects.get(correo=correo)
@@ -65,6 +79,5 @@ class CustomLoginForm(forms.Form):
                 raise forms.ValidationError("Credenciales incorrectas")
             if not user.check_password(password):
                 raise forms.ValidationError("Credenciales incorrectas")
-            # Se agrega el usuario validado al diccionario cleaned_data para usarlo luego
             cleaned_data["user"] = user
         return cleaned_data

@@ -3,12 +3,13 @@ from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 from django.views.generic.edit import FormView
 from django.contrib import messages
-from .models import Usuario
+from .models import Usuario, Categoria
 from .forms import UsuarioForm, RegistrationForm, CustomLoginForm
 from django.views import View
 from django.shortcuts import redirect
+from datetime import date
 
-# Importamos los mixins desde la carpeta utils (asegúrate de que la carpeta utils esté en PYTHONPATH)
+# Importamos los mixins desde utils (a nivel de proyecto)
 from utils.role_mixins import AdminRequiredForListMixin, SoloPropioMixin
 
 class UsuarioListView(AdminRequiredForListMixin, ListView):
@@ -22,7 +23,7 @@ class UsuarioListView(AdminRequiredForListMixin, ListView):
             if estado == 'inscrito':
                 estado_filtrado = 'activo'
             elif estado == 'matriculado':
-                estado_filtrado = 'activo'  # O el valor que corresponda
+                estado_filtrado = 'activo'
             else:
                 estado_filtrado = estado
             qs = qs.filter(estado=estado_filtrado)
@@ -35,7 +36,6 @@ class UsuarioDetailView(SoloPropioMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Obtenemos el id del usuario desde la sesión y lo convertimos en objeto Usuario
         current_user_id = self.request.session.get('custom_user_id')
         try:
             context['current_user'] = Usuario.objects.get(id=current_user_id)
@@ -60,17 +60,13 @@ class UsuarioDeleteView(SoloPropioMixin, DeleteView):
     success_url = reverse_lazy('usuarios:list')
 
     def dispatch(self, request, *args, **kwargs):
-        # Obtenemos el usuario logueado usando el método del mixin
         current_user = self.get_current_user(request)
         if not current_user:
             return redirect('usuarios:login')
-        # Solo el admin puede eliminar; aunque el mixin SoloPropioMixin permita a un usuario acceder a su propio registro,
-        # aquí se fuerza que si el rol no es 'admin' se bloquee la acción.
         if current_user.rol != 'admin':
             from django.core.exceptions import PermissionDenied
             raise PermissionDenied("Solo el admin puede eliminar usuarios.")
         return super().dispatch(request, *args, **kwargs)
-
 
 class CustomLoginView(FormView):
     """
@@ -88,7 +84,6 @@ class CustomLoginView(FormView):
 
     def form_valid(self, form):
         user = form.cleaned_data.get("user")
-        # Guardamos el id del usuario en la sesión (login manual)
         self.request.session['custom_user_id'] = user.id
         messages.success(self.request, "Login exitoso")
         return super().form_valid(form)
@@ -99,7 +94,7 @@ class CustomLogoutView(View):
     y redirige al login.
     """
     def get(self, request, *args, **kwargs):
-        request.session.flush()  # Limpia toda la sesión
+        request.session.flush()
         messages.info(request, "Has cerrado sesión")
         return redirect('usuarios:login')
 
@@ -120,6 +115,20 @@ class RegistrationView(FormView):
     def form_valid(self, form):
         user = form.save(commit=False)
         user.estado = 'activo'
+        # Calcular la categoría en base a la fecha de nacimiento
+        if user.fecha_nacimiento:
+            today = date.today()
+            age = today.year - user.fecha_nacimiento.year - (
+                (today.month, today.day) < (user.fecha_nacimiento.month, user.fecha_nacimiento.day)
+            )
+            if age < 10:
+                cat_name = "Infantil"
+            elif age < 18:
+                cat_name = "Adolescente"
+            else:
+                cat_name = "Adulto"
+            categoria, created = Categoria.objects.get_or_create(nombre=cat_name)
+            user.id_categoria = categoria
         user.set_password(form.cleaned_data['password'])
         user.save()
         return super().form_valid(form)
