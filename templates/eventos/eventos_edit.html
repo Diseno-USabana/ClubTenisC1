@@ -2,7 +2,13 @@
 {% extends '_base.html' %}
 
 {% block content %}
-  <h1>{% if object %}Editar Evento{% else %}Crear Evento{% endif %}</h1>
+  <h1>
+    {% if object %}
+      Editar Evento
+    {% else %}
+      Crear {% if tipo == "torneo" %}Torneo{% else %}Entrenamiento{% endif %}
+    {% endif %}
+  </h1>
   
   <form method="post">
     {% csrf_token %}
