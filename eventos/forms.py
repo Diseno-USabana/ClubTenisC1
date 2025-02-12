@@ -1,4 +1,3 @@
-# eventos/forms.py
 from django import forms
 from .models import Evento
 from usuarios.models import Usuario  # Para configurar el dropdown de entrenadores
@@ -36,11 +35,13 @@ class EventoForm(forms.ModelForm):
                 del self.fields['capacidad']
             self.fields['costo'].required = True
             self.fields['tipo'].initial = 'torneo'
+            self.fields['tipo'].widget = forms.HiddenInput()  # Ocultar el campo tipo
         else:
-            # Para entrenamientos, se elimina el campo costo.
+            # Para entrenamientos, se elimina el campo costo y se establece el tipo automáticamente.
             if 'costo' in self.fields:
                 del self.fields['costo']
             self.fields['tipo'].initial = 'entrenamiento'
+            self.fields['tipo'].widget = forms.HiddenInput()  # Ocultar el campo tipo
             # Incluir el dropdown de entrenadores
             if 'entrenador' in self.fields:
                 self.fields['entrenador'].queryset = Usuario.objects.filter(rol='entrenador')

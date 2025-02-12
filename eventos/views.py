@@ -98,7 +98,7 @@ class EventoCreateView(AdminEntrenadorRequiredMixin, CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        # Pasar el parámetro "tipo" desde la query string (default: "entrenamiento")
+        # Pasar "tipo" desde la query string (default: "entrenamiento")
         kwargs['tipo'] = self.request.GET.get('tipo', 'entrenamiento')
         # Pasar current_user para configurar el dropdown de entrenadores en el formulario (para entrenamientos)
         kwargs['current_user'] = self.get_current_user(self.request)
@@ -119,6 +119,7 @@ class EventoCreateView(AdminEntrenadorRequiredMixin, CreateView):
         else:
             form.instance.tipo = 'entrenamiento'
             form.instance.costo = None
+            # NO se asigna automáticamente el entrenador; se espera que venga del formulario
 
         event_date = form.cleaned_data.get('fecha')
         today = date.today()
@@ -137,7 +138,7 @@ class EventoCreateView(AdminEntrenadorRequiredMixin, CreateView):
                 form.add_error('fecha', 'No se pueden crear torneos con más de un año de antelación.')
                 return self.form_invalid(form)
 
-        # Calcular intervalo del nuevo evento
+        # Calcular el intervalo del nuevo evento
         new_start = datetime.combine(form.cleaned_data['fecha'], form.cleaned_data['hora'])
         new_end = new_start + timedelta(minutes=form.cleaned_data['duracion'])
         # Filtrar eventos del mismo día
@@ -152,26 +153,25 @@ class EventoCreateView(AdminEntrenadorRequiredMixin, CreateView):
                     form.add_error(None, "Existe un evento que se cruza en ese horario; no se puede crear el torneo.")
                     return self.form_invalid(form)
         else:  # entrenamiento
-            # Solo considerar eventos de tipo entrenamiento para solapamiento
             overlapping = []
             for evt in overlapping_events.filter(tipo='entrenamiento'):
                 evt_start = datetime.combine(evt.fecha, evt.hora)
                 evt_end = evt_start + timedelta(minutes=evt.duracion)
                 if new_start < evt_end and new_end > evt_start:
                     overlapping.append(evt)
-            # Si alguno de los eventos solapados ocupa ambas canchas, no se permite ningún solapamiento
-            for evt in overlapping:
-                if evt.capacidad > 6:
-                    form.add_error(None, "Existe un entrenamiento en ese horario que ocupa ambas canchas; no se puede crear un nuevo entrenamiento que se cruce.")
-                    return self.form_invalid(form)
-            # Si ya hay dos entrenamientos solapados, no se permite crear uno nuevo
             if len(overlapping) >= 2:
                 form.add_error(None, "Ya se han reservado las dos canchas en ese horario.")
                 return self.form_invalid(form)
-            # Además, la capacidad del nuevo entrenamiento no puede exceder 6 (una cancha)
-            if form.cleaned_data.get('capacidad', 0) > 6:
-                form.add_error('capacidad', "La capacidad para un entrenamiento no puede exceder 6 (una cancha).")
-                return self.form_invalid(form)
+            # Validar capacidad según solapamientos:
+            new_capacity = form.cleaned_data.get('capacidad', 0)
+            if len(overlapping) == 0:
+                if new_capacity > 12:
+                    form.add_error('capacidad', "La capacidad para un entrenamiento sin solapamiento no puede exceder 12 (dos canchas).")
+                    return self.form_invalid(form)
+            elif len(overlapping) == 1:
+                if new_capacity > 6:
+                    form.add_error('capacidad', "La capacidad para un entrenamiento con un solapamiento no puede exceder 6 (una cancha).")
+                    return self.form_invalid(form)
 
         return super().form_valid(form)
 
@@ -182,7 +182,6 @@ class EventoCreateView(AdminEntrenadorRequiredMixin, CreateView):
         else:
             return reverse_lazy('eventos:entrenamientos_list')
 
-
 class EventoUpdateView(AdminEntrenadorRequiredMixin, UpdateView):
     model = Evento
     form_class = EventoForm
@@ -191,7 +190,7 @@ class EventoUpdateView(AdminEntrenadorRequiredMixin, UpdateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        # Para edición, se pasa el parámetro "tipo" de la query string o se usa el valor actual del objeto
+        # Para edición, pasar "tipo" desde la query string o usar el valor actual del objeto
         kwargs['tipo'] = self.request.GET.get('tipo', self.object.tipo)
         kwargs['current_user'] = self.get_current_user(self.request)
         return kwargs
@@ -248,16 +247,18 @@ class EventoUpdateView(AdminEntrenadorRequiredMixin, UpdateView):
                 evt_end = evt_start + timedelta(minutes=evt.duracion)
                 if new_start < evt_end and new_end > evt_start:
                     overlapping.append(evt)
-            for evt in overlapping:
-                if evt.capacidad > 6:
-                    form.add_error(None, "Existe un entrenamiento en ese horario que ocupa ambas canchas; no se puede actualizar el evento.")
-                    return self.form_invalid(form)
             if len(overlapping) >= 2:
                 form.add_error(None, "Ya se han reservado las dos canchas en ese horario.")
                 return self.form_invalid(form)
-            if form.cleaned_data.get('capacidad', 0) > 6:
-                form.add_error('capacidad', "La capacidad para un entrenamiento no puede exceder 6 (una cancha).")
-                return self.form_invalid(form)
+            new_capacity = form.cleaned_data.get('capacidad', 0)
+            if len(overlapping) == 0:
+                if new_capacity > 12:
+                    form.add_error('capacidad', "La capacidad para un entrenamiento sin solapamiento no puede exceder 12 (dos canchas).")
+                    return self.form_invalid(form)
+            elif len(overlapping) == 1:
+                if new_capacity > 6:
+                    form.add_error('capacidad', "La capacidad para un entrenamiento con un solapamiento no puede exceder 6 (una cancha).")
+                    return self.form_invalid(form)
 
         return super().form_valid(form)
 
