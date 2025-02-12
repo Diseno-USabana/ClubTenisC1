@@ -1,6 +1,6 @@
 # usuarios/views.py
 from django.urls import reverse_lazy, reverse
-from django.views.generic import ListView, DetailView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, UpdateView, DeleteView, CreateView
 from django.views.generic.edit import FormView
 from django.contrib import messages
 from .models import Usuario, Categoria
@@ -8,8 +8,27 @@ from .forms import UsuarioForm, RegistrationForm, CustomLoginForm
 from django.views import View
 from django.shortcuts import redirect
 from datetime import date
+from django.core.exceptions import PermissionDenied
 
 from utils.role_mixins import AdminRequiredForListMixin, SoloPropioMixin
+
+class UsuarioCreateView(AdminRequiredForListMixin, CreateView):
+    """
+    Vista para que el admin pueda crear nuevos usuarios.
+    Se utiliza el mismo formulario y template que en la edición.
+    """
+    model = Usuario
+    form_class = UsuarioForm
+    template_name = 'usuarios/usuario_edit.html'
+    success_url = reverse_lazy('usuarios:list')
+
+    def form_valid(self, form):
+        # Verificamos que el usuario actual es admin usando el método del mixin.
+        current_user = self.get_current_user(self.request)
+        if not current_user or current_user.rol != 'admin':
+            raise PermissionDenied("Solo el admin puede crear usuarios.")
+        # Aquí se podría agregar lógica adicional si se requiriera.
+        return super().form_valid(form)
 
 class UsuarioListView(AdminRequiredForListMixin, ListView):
     model = Usuario
@@ -28,6 +47,15 @@ class UsuarioListView(AdminRequiredForListMixin, ListView):
             qs = qs.filter(estado=estado_filtrado)
         return qs
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        current_user = self.get_current_user(self.request)
+        if current_user:
+            context['can_create'] = (current_user.rol == 'admin')
+            # Por ejemplo, puedes pasar también el rol en el contexto
+            context['current_role'] = current_user.rol
+        return context
+
 class UsuarioDetailView(SoloPropioMixin, DetailView):
     model = Usuario
     context_object_name = 'usuario'
@@ -35,11 +63,8 @@ class UsuarioDetailView(SoloPropioMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        current_user_id = self.request.session.get('custom_user_id')
-        try:
-            context['current_user'] = Usuario.objects.get(id=current_user_id)
-        except Usuario.DoesNotExist:
-            context['current_user'] = None
+        current_user = self.get_current_user(self.request)
+        context['current_user'] = current_user
         return context
 
 class UsuarioUpdateView(SoloPropioMixin, UpdateView):
