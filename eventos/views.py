@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 from .models import Evento, AsistenciaEntrenamiento, AsistenciaTorneo, Pago
 from .forms import EventoForm
 from django.utils import timezone
+from datetime import date
 from utils.role_mixins import UsuarioSessionMixin
 
 # Función auxiliar para obtener el usuario actual desde la sesión
@@ -58,6 +59,7 @@ class EntrenamientoListView(ListView):
         current_user = get_current_user(self.request)
         if current_user:
             context['can_create'] = current_user.rol in ['admin', 'entrenador']
+            context['current_role'] = current_user.rol  
             if current_user.rol == 'miembro':
                 insc_ent = AsistenciaEntrenamiento.objects.filter(usuario=current_user)
                 context['user_inscripciones_entrenamiento'] = [ins.entrenamiento.id for ins in insc_ent]
@@ -224,7 +226,14 @@ def inscribirse_torneo(request, evento_id):
     if AsistenciaTorneo.objects.filter(usuario=current_user, torneo=evento).exists():
         messages.info(request, "Ya estás inscrito en este torneo.")
         return redirect('eventos:torneos_list')
-    pago = Pago.objects.create(monto=evento.costo)
+
+    pago = Pago.objects.create(
+        usuario=current_user,   # Se asigna el usuario al pago
+        monto=evento.costo,
+        concepto='torneo',      # Se asigna el concepto correspondiente
+        fecha=date.today()      # Se asigna la fecha actual
+    )
+    
     AsistenciaTorneo.objects.create(
         usuario=current_user,
         torneo=evento,
