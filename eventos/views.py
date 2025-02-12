@@ -96,6 +96,11 @@ class EventoCreateView(AdminEntrenadorRequiredMixin, CreateView):
     form_class = EventoForm
     template_name = 'eventos/eventos_edit.html'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['tipo'] = self.request.GET.get('tipo', 'entrenamiento')
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tipo'] = self.request.GET.get('tipo', 'entrenamiento')
@@ -132,18 +137,13 @@ class EventoCreateView(AdminEntrenadorRequiredMixin, CreateView):
         new_start = datetime.combine(form.cleaned_data['fecha'], form.cleaned_data['hora'])
         new_end = new_start + timedelta(minutes=form.cleaned_data['duracion'])
         overlapping_events = Evento.objects.filter(fecha=form.cleaned_data['fecha']).exclude(id=form.instance.id)
-        conflict = False
-
         if tipo == 'torneo':
             for evt in overlapping_events:
                 evt_start = datetime.combine(evt.fecha, evt.hora)
                 evt_end = evt_start + timedelta(minutes=evt.duracion)
                 if new_start < evt_end and new_end > evt_start:
-                    conflict = True
-                    break
-            if conflict:
-                form.add_error(None, "Existe un evento que se cruza en ese horario; no se puede crear el torneo.")
-                return self.form_invalid(form)
+                    form.add_error(None, "Existe un evento que se cruza en ese horario; no se puede crear el torneo.")
+                    return self.form_invalid(form)
         else:  # entrenamiento
             overlapping = []
             for evt in overlapping_events.filter(tipo='entrenamiento'):
@@ -168,11 +168,25 @@ class EventoCreateView(AdminEntrenadorRequiredMixin, CreateView):
 
         return super().form_valid(form)
 
+    def get_success_url(self):
+        tipo = self.request.GET.get('tipo', 'entrenamiento')
+        if tipo == 'torneo':
+            return reverse_lazy('eventos:torneos_list')
+        else:
+            return reverse_lazy('eventos:entrenamientos_list')
+
+
 class EventoUpdateView(AdminEntrenadorRequiredMixin, UpdateView):
     model = Evento
     form_class = EventoForm
     template_name = 'eventos/eventos_edit.html'
     success_url = reverse_lazy('eventos:entrenamientos_list')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # Para edición, se pasa el parámetro "tipo" de la query o el valor actual del objeto
+        kwargs['tipo'] = self.request.GET.get('tipo', self.object.tipo)
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -210,17 +224,13 @@ class EventoUpdateView(AdminEntrenadorRequiredMixin, UpdateView):
         new_start = datetime.combine(form.cleaned_data['fecha'], form.cleaned_data['hora'])
         new_end = new_start + timedelta(minutes=form.cleaned_data['duracion'])
         overlapping_events = Evento.objects.filter(fecha=form.cleaned_data['fecha']).exclude(id=self.object.id)
-        conflict = False
         if tipo == 'torneo':
             for evt in overlapping_events:
                 evt_start = datetime.combine(evt.fecha, evt.hora)
                 evt_end = evt_start + timedelta(minutes=evt.duracion)
                 if new_start < evt_end and new_end > evt_start:
-                    conflict = True
-                    break
-            if conflict:
-                form.add_error(None, "Existe un evento que se cruza en ese horario; no se puede actualizar el torneo.")
-                return self.form_invalid(form)
+                    form.add_error(None, "Existe un evento que se cruza en ese horario; no se puede actualizar el torneo.")
+                    return self.form_invalid(form)
         else:
             overlapping = []
             for evt in overlapping_events.filter(tipo='entrenamiento'):
@@ -280,11 +290,9 @@ class TorneoDetailView(UsuarioSessionMixin, DetailView):
         context['user_inscrito'] = True if asistencia else False
         return context
 
-
 # ======================================
 # Inscripción/Desinscripción
 # ======================================
-
 @require_POST
 def inscribirse_entrenamiento(request, evento_id):
     current_user = UsuarioSessionMixin().get_current_user(request)
