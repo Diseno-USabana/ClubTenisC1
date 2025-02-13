@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST
 from .models import Evento, AsistenciaEntrenamiento, AsistenciaTorneo, Pago
 from .forms import EventoForm
 from django.utils import timezone
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, time
 from dateutil.relativedelta import relativedelta
 from utils.role_mixins import UsuarioSessionMixin
 
@@ -119,9 +119,10 @@ class EventoCreateView(AdminEntrenadorRequiredMixin, CreateView):
         else:
             form.instance.tipo = 'entrenamiento'
             form.instance.costo = None
-            # NO se asigna automáticamente el entrenador; se espera que venga del formulario
+            # No se asigna automáticamente el entrenador; se espera que venga del formulario
 
         event_date = form.cleaned_data.get('fecha')
+        event_id = self.object.id if self.object else None
         today = date.today()
         if tipo == 'entrenamiento':
             if event_date < today:
@@ -138,40 +139,27 @@ class EventoCreateView(AdminEntrenadorRequiredMixin, CreateView):
                 form.add_error('fecha', 'No se pueden crear torneos con más de un año de antelación.')
                 return self.form_invalid(form)
 
+        
         # Calcular el intervalo del nuevo evento
         new_start = datetime.combine(form.cleaned_data['fecha'], form.cleaned_data['hora'])
         new_end = new_start + timedelta(minutes=form.cleaned_data['duracion'])
-        # Filtrar eventos del mismo día
-        overlapping_events = Evento.objects.filter(fecha=form.cleaned_data['fecha']).exclude(id=form.instance.id)
+       
+        if not check_event_time_restrictions(form, new_start, new_end, tipo, event_date):
+            return self.form_invalid(form)
+            
+        # Solapamiento con otros eventos (se filtra por fecha)
+        if not check_event_overlap(form, new_start, new_end, tipo, event_id):
+            return self.form_invalid(form)
 
-        if tipo == 'torneo':
-            # Para torneos: cualquier solapamiento (con cualquier evento) es prohibido
-            for evt in overlapping_events:
-                evt_start = datetime.combine(evt.fecha, evt.hora)
-                evt_end = evt_start + timedelta(minutes=evt.duracion)
-                if new_start < evt_end and new_end > evt_start:
-                    form.add_error(None, "Existe un evento que se cruza en ese horario; no se puede crear el torneo.")
-                    return self.form_invalid(form)
-        else:  # entrenamiento
-            overlapping = []
-            for evt in overlapping_events.filter(tipo='entrenamiento'):
-                evt_start = datetime.combine(evt.fecha, evt.hora)
-                evt_end = evt_start + timedelta(minutes=evt.duracion)
-                if new_start < evt_end and new_end > evt_start:
-                    overlapping.append(evt)
-            if len(overlapping) >= 2:
-                form.add_error(None, "Ya se han reservado las dos canchas en ese horario.")
-                return self.form_invalid(form)
-            # Validar capacidad según solapamientos:
-            new_capacity = form.cleaned_data.get('capacidad', 0)
-            if len(overlapping) == 0:
-                if new_capacity > 12:
-                    form.add_error('capacidad', "La capacidad para un entrenamiento sin solapamiento no puede exceder 12 (dos canchas).")
-                    return self.form_invalid(form)
-            elif len(overlapping) == 1:
-                if new_capacity > 6:
-                    form.add_error('capacidad', "La capacidad para un entrenamiento con un solapamiento no puede exceder 6 (una cancha).")
-                    return self.form_invalid(form)
+        # Asignar nombre predeterminado (solo en creación) para entrenamientos
+        if tipo == 'entrenamiento' and not form.instance.nombre:
+            # Se asume que el campo categoría ya fue seleccionado en el formulario
+            cat_name = str(form.instance.categoria) if form.instance.categoria else "Sin categoría"
+            # Formatear la fecha: día y las 3 primeras letras del mes (con punto)
+            fecha_str = form.cleaned_data['fecha'].strftime("%d %b.").lstrip("0")
+            # Formatear la hora: en formato "h:mm am/pm"
+            hora_str = form.cleaned_data['hora'].strftime("%I:%M %p").lstrip("0").lower()
+            form.instance.nombre = f"{cat_name} - {fecha_str} {hora_str}"
 
         return super().form_valid(form)
 
@@ -210,9 +198,10 @@ class EventoUpdateView(AdminEntrenadorRequiredMixin, UpdateView):
         else:
             form.instance.tipo = 'entrenamiento'
             form.instance.costo = None
-            # No se asigna automáticamente el entrenador; se usa lo que venga del formulario
+            # No se asigna automáticamente el entrenador; se espera que venga del formulario
 
         event_date = form.cleaned_data.get('fecha')
+        event_id = self.object.id if self.object else None
         today = date.today()
         if tipo == 'entrenamiento':
             if event_date < today:
@@ -229,36 +218,16 @@ class EventoUpdateView(AdminEntrenadorRequiredMixin, UpdateView):
                 form.add_error('fecha', 'No se pueden actualizar torneos con más de un año de antelación.')
                 return self.form_invalid(form)
 
+        # Calcular el intervalo del nuevo evento
         new_start = datetime.combine(form.cleaned_data['fecha'], form.cleaned_data['hora'])
         new_end = new_start + timedelta(minutes=form.cleaned_data['duracion'])
-        overlapping_events = Evento.objects.filter(fecha=form.cleaned_data['fecha']).exclude(id=self.object.id)
 
-        if tipo == 'torneo':
-            for evt in overlapping_events:
-                evt_start = datetime.combine(evt.fecha, evt.hora)
-                evt_end = evt_start + timedelta(minutes=evt.duracion)
-                if new_start < evt_end and new_end > evt_start:
-                    form.add_error(None, "Existe un evento que se cruza en ese horario; no se puede actualizar el torneo.")
-                    return self.form_invalid(form)
-        else:
-            overlapping = []
-            for evt in overlapping_events.filter(tipo='entrenamiento'):
-                evt_start = datetime.combine(evt.fecha, evt.hora)
-                evt_end = evt_start + timedelta(minutes=evt.duracion)
-                if new_start < evt_end and new_end > evt_start:
-                    overlapping.append(evt)
-            if len(overlapping) >= 2:
-                form.add_error(None, "Ya se han reservado las dos canchas en ese horario.")
-                return self.form_invalid(form)
-            new_capacity = form.cleaned_data.get('capacidad', 0)
-            if len(overlapping) == 0:
-                if new_capacity > 12:
-                    form.add_error('capacidad', "La capacidad para un entrenamiento sin solapamiento no puede exceder 12 (dos canchas).")
-                    return self.form_invalid(form)
-            elif len(overlapping) == 1:
-                if new_capacity > 6:
-                    form.add_error('capacidad', "La capacidad para un entrenamiento con un solapamiento no puede exceder 6 (una cancha).")
-                    return self.form_invalid(form)
+        if not check_event_time_restrictions(form, new_start, new_end, tipo, event_date):
+            return self.form_invalid(form)
+
+        # Solapamiento con otros eventos (se filtra por fecha)
+        if not check_event_overlap(form, new_start, new_end, tipo, event_id):
+            return self.form_invalid(form)
 
         return super().form_valid(form)
 
@@ -393,3 +362,65 @@ def desinscribirse_torneo(request, evento_id):
     else:
         messages.info(request, "No estabas inscrito en este torneo.")
     return redirect('eventos:torneos_list')
+
+from datetime import datetime, time, timedelta
+
+def check_event_time_restrictions(form, new_start, new_end, tipo, event_date):
+    # Restricción horaria según el tipo de evento
+    if tipo == 'entrenamiento':
+        forbidden_start = datetime.combine(event_date, time(0, 0)) + timedelta(days=1)
+        forbidden_end = datetime.combine(event_date, time(6, 0))
+    else:  # Suponiendo que el otro tipo es 'torneo'
+        forbidden_start = datetime.combine(event_date, time(22, 0))
+        forbidden_end = datetime.combine(event_date, time(6, 0))
+
+    print(f"forbidden_start: {forbidden_start}")
+    print(f"forbidden_end: {forbidden_end}")
+    print(f"new_start: {new_start}")
+    print(f"new_end: {new_end}")
+
+    # Comprobar si el evento comienza antes del fin del período prohibido o termina después del inicio del período prohibido
+    if new_start < forbidden_end or new_end > forbidden_start:
+        if tipo == 'entrenamiento':
+            form.add_error('hora', 'No se pueden crear entrenamientos que se solapen con el horario de 12:00 AM a 06:00 AM.')
+        else:
+            form.add_error('hora', 'No se pueden crear torneos que se solapen con el horario de 10:00 PM a 06:00 AM.')
+        return form.is_valid()
+
+    return True
+
+
+from datetime import datetime, timedelta
+
+def check_event_overlap(form, new_start, new_end, tipo, event_id):
+    overlapping_events = Evento.objects.filter(fecha=form.cleaned_data['fecha']).exclude(id=event_id)
+    if tipo == 'torneo':
+        # No se permite ningún solapamiento para torneos
+        for evt in overlapping_events:
+            evt_start = datetime.combine(evt.fecha, evt.hora)
+            evt_end = evt_start + timedelta(minutes=evt.duracion)
+            if new_start < evt_end and new_end > evt_start:
+                form.add_error(None, "Existe un evento que se cruza en ese horario; no se puede crear el torneo.")
+                return False
+    else:
+        # Calcular solapamientos entre entrenamientos
+        overlapping = []
+        for evt in overlapping_events.filter(tipo='entrenamiento'):
+            evt_start = datetime.combine(evt.fecha, evt.hora)
+            evt_end = evt_start + timedelta(minutes=evt.duracion)
+            if new_start < evt_end and new_end > evt_start:
+                overlapping.append(evt)
+
+        # Comprobación de capacidad y solapamientos
+        new_capacity = form.cleaned_data.get('capacidad', 0)
+        if len(overlapping) >= 2:
+            form.add_error(None, "Ya se han reservado las dos canchas en ese horario.")
+            return False
+        if len(overlapping) == 0 and new_capacity > 12:
+            form.add_error('capacidad', "La capacidad para un entrenamiento sin solapamiento no puede exceder 12 (dos canchas).")
+            return False
+        elif len(overlapping) == 1 and new_capacity > 6:
+            form.add_error('capacidad', "La capacidad para un entrenamiento con un solapamiento no puede exceder 6 (una cancha).")
+            return False
+
+    return True
