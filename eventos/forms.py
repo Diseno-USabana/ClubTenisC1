@@ -40,6 +40,9 @@ class EventoForm(forms.ModelForm):
             # Para entrenamientos, se elimina el campo costo y se establece el tipo automáticamente.
             if 'costo' in self.fields:
                 del self.fields['costo']
+            if 'nombre' in self.fields and not (self.instance and self.instance.id):
+                del self.fields['nombre']
+            
             self.fields['tipo'].initial = 'entrenamiento'
             self.fields['tipo'].widget = forms.HiddenInput()  # Ocultar el campo tipo
             # Incluir el dropdown de entrenadores

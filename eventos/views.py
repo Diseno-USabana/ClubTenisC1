@@ -157,9 +157,10 @@ class EventoCreateView(AdminEntrenadorRequiredMixin, CreateView):
             cat_name = str(form.instance.categoria) if form.instance.categoria else "Sin categoría"
             # Formatear la fecha: día y las 3 primeras letras del mes (con punto)
             fecha_str = form.cleaned_data['fecha'].strftime("%d %b.").lstrip("0")
-            # Formatear la hora: en formato "h:mm am/pm"
-            hora_str = form.cleaned_data['hora'].strftime("%I:%M %p").lstrip("0").lower()
+            # Formatear la hora: en formato "h:mm AM/PM"
+            hora_str = form.cleaned_data['hora'].strftime("%I:%M %p").lstrip("0").upper()
             form.instance.nombre = f"{cat_name} - {fecha_str} {hora_str}"
+
 
         return super().form_valid(form)
 
