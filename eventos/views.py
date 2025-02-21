@@ -8,30 +8,7 @@ from .forms import EventoForm
 from django.utils import timezone
 from datetime import date, datetime, timedelta, time
 from dateutil.relativedelta import relativedelta
-from utils.role_mixins import UsuarioSessionMixin
-
-def filter_upcoming_events(queryset, event_type):
-    now = timezone.now()
-    upcoming_events = queryset.filter(
-        tipo=event_type,
-        fecha__gt=now.date()
-    ) | queryset.filter(
-        tipo=event_type,
-        fecha=now.date(),
-        hora__gte=now.time()
-    )
-    return upcoming_events
-
-# Mixin para restringir el acceso a admin y entrenador (para creación/edición/eliminación)
-class AdminEntrenadorRequiredMixin(UsuarioSessionMixin):
-    def dispatch(self, request, *args, **kwargs):
-        current_user = self.get_current_user(request)
-        if not current_user:
-            return redirect('usuarios:login')
-        if current_user.rol not in ['admin', 'entrenador']:
-            messages.error(request, "No tienes permiso para acceder a esta página.")
-            return redirect('eventos:entrenamientos_list')
-        return super().dispatch(request, *args, **kwargs)
+from utils.role_mixins import AdminEntrenadorRequiredMixin, UsuarioSessionMixin
 
 # ======================================
 # Lista de Entrenamientos
@@ -425,3 +402,16 @@ def check_event_overlap(form, new_start, new_end, tipo, event_id):
             return False
 
     return True
+
+def filter_upcoming_events(queryset, event_type):
+    now = timezone.now()
+    upcoming_events = queryset.filter(
+        tipo=event_type,
+        fecha__gt=now.date()
+    ) | queryset.filter(
+        tipo=event_type,
+        fecha=now.date(),
+        hora__gte=now.time()
+    )
+    return upcoming_events
+

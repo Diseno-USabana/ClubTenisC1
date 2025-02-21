@@ -1,6 +1,7 @@
 # utils/role_mixins.py
 from django.shortcuts import redirect
 from django.core.exceptions import PermissionDenied
+from django.contrib import messages
 from usuarios.models import Usuario
 
 class UsuarioSessionMixin:
@@ -15,6 +16,16 @@ class UsuarioSessionMixin:
             return Usuario.objects.get(id=user_id)
         except Usuario.DoesNotExist:
             return None
+        
+class AdminEntrenadorRequiredMixin(UsuarioSessionMixin):
+    def dispatch(self, request, *args, **kwargs):
+        current_user = self.get_current_user(request)
+        if not current_user:
+            return redirect('usuarios:login')
+        if current_user.rol not in ['admin', 'entrenador']:
+            messages.error(request, "No tienes permiso para acceder a esta página.")
+            return redirect('eventos:entrenamientos_list')
+        return super().dispatch(request, *args, **kwargs)
 
 class AdminRequiredForListMixin(UsuarioSessionMixin):
     """
