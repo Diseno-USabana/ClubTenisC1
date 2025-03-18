@@ -1,34 +1,51 @@
 {% extends '_base.html' %}
 
 {% block content %}
-  <h1>Torneos Disponibles</h1>
+<div class="container mt-4">
+    <div class="text-center my-4">
+        <p class="lead">🎾¡Desafía tus límites y vive la emoción de los Torneos! 🌱🏆 Inscríbete ahora y demuestra tu pasión por el tenis. 💪🔥 #JuegaConPasión</p>
+    </div>
 
-  {# Opción para crear un nuevo torneo (solo admin o entrenador) #}
-  {% if can_create %}
-    <p>
-      <a href="{% url 'eventos:create' %}?tipo=torneo">
-        Crear Nuevo Torneo
-      </a>
-    </p>
-  {% endif %}
+    {% if eventos %}
+    <div class="row d-flex justify-content-center">
+        {% for evento in eventos %}
+            <div class="col-md-4">
+                <div class="card shadow-sm rounded bg-light">
+                  {% load static %}
+                  <img src="{% static 'img/Toenro 1.jpg' %}" class="card-img-top" alt="Torneo 1">                  
+                    <div class="card-body">
+                        <h5 class="card-title">{{ evento.nombre }}</h5>
+                        <p class="card-text">{{ evento.descripcion|truncatewords:20 }}</p>
+                        <div class="text-center">
+                            <a href="{% url 'eventos:torneo_detail' evento.id %}" class="btn btn-outline-brown">Ver más</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <p class="text-center">No hay torneos disponibles.</p>
+    {% endif %}
+</div>
 
-  {% if eventos %}
-    <ul>
-      {% for evento in eventos %}
-        <li>
-          <h2>{{ evento.nombre }}</h2>
-          <p>
-            Fecha: {{ evento.fecha }} — Hora: {{ evento.hora }}<br>
-            Duración: {{ evento.duracion }} minutos<br>
-            Costo: {{ evento.costo }}
-          </p>
-          <p>
-            <a href="{% url 'eventos:torneo_detail' evento.id %}">Ver Detalle</a>
-          </p>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No hay torneos disponibles.</p>
-  {% endif %}
+<div class="fixed-bottom bg-brown p-3 text-center">
+    <p class="text-white mb-1">¡Inscríbete ya! Asegura tu lugar en nuestros torneos antes de que se llenen los cupos.</p>
+    {# Opción para crear un nuevo torneo (solo admin o entrenador) #}
+    {% if can_create %}
+      
+      <a href="{% url 'eventos:create' %}?tipo=torneo" class="btn btn-brown btn-bordered">Crear Nuevo Entrenamiento</a>
+      
+    {% endif %}
+</div>
+
+<style>
+    .bg-brown { background-color: #6F4E37; }
+    .btn-brown { background-color: #6F4E37; color: white; border: 2px solid #5A3C2E; }
+    .btn-outline-brown { border-color: #6F4E37; color: #6F4E37; }
+    .btn-brown:hover, .btn-outline-brown:hover { background-color: #5A3C2E; color: white; }
+    .btn-bordered { border: 2px solid white; border-radius: 8px; }
+    .card { border-radius: 12px; overflow: hidden; }
+    .card img { height: 200px; object-fit: cover; }
+</style>
 {% endblock %}

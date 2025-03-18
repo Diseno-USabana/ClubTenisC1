@@ -1,27 +1,45 @@
 {% extends '_base.html' %}
 
 {% block content %}
-  <h1>Detalle del Entrenamiento</h1>
+<div class="container mt-4">
+    <div class="text-center my-4">
+        <h1 class="text-brown">🏋️‍♂️ Detalle del Entrenamiento</h1>
+    </div>
+    
+    <div class="card shadow-sm rounded bg-light p-4">
+        <h3 class="text-center text-brown">{{ evento.nombre }}</h3>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item"><strong>📅 Fecha:</strong> {{ evento.fecha }}</li>
+            <li class="list-group-item"><strong>⏰ Hora:</strong> {{ evento.hora }}</li>
+            <li class="list-group-item"><strong>⌛ Duración:</strong> {{ evento.duracion }} minutos</li>
+            <li class="list-group-item"><strong>👥 Cupo:</strong> {{ evento.asistencias_entrenamiento.count }} / {{ evento.capacidad }}</li>
+        </ul>
+    </div>
+    
+    {# Si es admin/entrenador, permitir editar/eliminar #}
+    {% if can_edit %}
+        <hr>
+        <div class="text-center mt-4">
+            <h2 class="text-brown">⚙️ Administración</h2>
+            <a href="{% url 'eventos:edit' evento.id %}" class="btn btn-warning">✏️ Editar Entrenamiento</a>
+            <form action="{% url 'eventos:delete' evento.id %}" method="post" class="d-inline"
+                  onsubmit="return confirm('¿Seguro que deseas eliminar este entrenamiento?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">🗑️ Eliminar</button>
+            </form>
+        </div>
+    {% endif %}
+    
+    <div class="text-center mt-4">
+        <a href="{% url 'eventos:entrenamientos_list' %}" class="btn btn-outline-brown">🔙 Regresar a la lista de entrenamientos</a>
+    </div>
+</div>
 
-  <p><strong>Nombre:</strong> {{ evento.nombre }}</p>
-  <p><strong>Fecha:</strong> {{ evento.fecha }}</p>
-  <p><strong>Hora:</strong> {{ evento.hora }}</p>
-  <p><strong>Duración:</strong> {{ evento.duracion }} minutos</p>
-  <p><strong>Cupo:</strong> {{ evento.asistencias_entrenamiento.count }} / {{ evento.capacidad }}</p>
-
-  {# Si es admin/entrenador, permitir editar/eliminar #}
-  {% if can_edit %}
-    <hr>
-    <h2>Administración</h2>
-    <a href="{% url 'eventos:edit' evento.id %}">Editar Entrenamiento</a> |
-    <form action="{% url 'eventos:delete' evento.id %}" method="post" style="display:inline;" 
-          onsubmit="return confirm('¿Seguro que deseas eliminar este entrenamiento?');">
-      {% csrf_token %}
-      <button type="submit" style="background-color:red; color:white;">Eliminar</button>
-    </form>
-  {% endif %}
-
-  <p>
-    <a href="{% url 'eventos:entrenamientos_list' %}">Regresar a la lista de entrenamientos</a>
-  </p>
+<style>
+    .text-brown { color: #6F4E37; }
+    .bg-light { background-color: #f8f9fa; }
+    .btn-outline-brown { border: 2px solid #6F4E37; color: #6F4E37; }
+    .btn-outline-brown:hover { background-color: #6F4E37; color: white; }
+</style>
 {% endblock %}
+  

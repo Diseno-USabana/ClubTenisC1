@@ -1,27 +1,47 @@
-{# templates/eventos/eventos_edit.html #}
 {% extends '_base.html' %}
 
 {% block content %}
-  <h1>
-    {% if object %}
-      Editar Evento
-    {% else %}
-      Crear {% if tipo == "torneo" %}Torneo{% else %}Entrenamiento{% endif %}
-    {% endif %}
-  </h1>
-  
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Guardar</button>
-  </form>
+<div class="container mt-5">
+    <div class="card shadow-sm p-4 bg-light rounded">
+        <h1 class="text-center text-brown">
+            {% if object %}
+                ✏️ Editar Evento
+            {% else %}
+                📅 Crear {% if tipo == "torneo" %}Torneo{% else %}Entrenamiento{% endif %}
+            {% endif %}
+        </h1>
+        <hr>
+        
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.as_p }}
+            </div>
+            <div class="text-center mt-3">
+                <button type="submit" class="btn btn-brown">💾 Guardar</button>
+            </div>
+        </form>
 
-  {% if object %}
-    <hr>
-    <h2>Eliminar Evento</h2>
-    <form method="post" action="{% url 'eventos:delete' object.id %}" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este evento?');">
-      {% csrf_token %}
-      <button type="submit" style="background-color: red; color: white;">Eliminar Evento</button>
-    </form>
-  {% endif %}
+        {% if object %}
+            <hr>
+            <h2 class="text-center text-danger">🗑️ Eliminar Evento</h2>
+            <p class="text-center">Si eliminas este evento, no podrás recuperarlo.</p>
+            <form method="post" action="{% url 'eventos:delete' object.id %}" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este evento?');">
+                {% csrf_token %}
+                <div class="text-center">
+                    <button type="submit" class="btn btn-danger">❌ Eliminar Evento</button>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .text-brown { color: #6F4E37; }
+    .bg-light { background-color: #f8f9fa; }
+    .btn-brown { background-color: #6F4E37; color: white; border: 2px solid #5A3C2E; padding: 10px 20px; }
+    .btn-brown:hover { background-color: #5A3C2E; }
+    .btn-danger { padding: 10px 20px; }
+    .card { border-radius: 12px; }
+</style>
 {% endblock %}
