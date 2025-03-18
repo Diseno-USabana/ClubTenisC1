@@ -15,7 +15,7 @@ from utils.role_mixins import AdminRequiredForListMixin, SoloPropioMixin
 class UsuarioCreateView(AdminRequiredForListMixin, CreateView):
     """
     Vista para que el admin pueda crear nuevos usuarios.
-    Se utiliza el mismo formulario y template que en la edición.
+    El formulario se mostrará de forma dinámica según el rol seleccionado.
     """
     model = Usuario
     form_class = UsuarioForm
@@ -23,11 +23,9 @@ class UsuarioCreateView(AdminRequiredForListMixin, CreateView):
     success_url = reverse_lazy('usuarios:list')
 
     def form_valid(self, form):
-        # Verificamos que el usuario actual es admin usando el método del mixin.
         current_user = self.get_current_user(self.request)
         if not current_user or current_user.rol != 'admin':
             raise PermissionDenied("Solo el admin puede crear usuarios.")
-        # Aquí se podría agregar lógica adicional si se requiriera.
         return super().form_valid(form)
 
 class UsuarioListView(AdminRequiredForListMixin, ListView):

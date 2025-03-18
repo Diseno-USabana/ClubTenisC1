@@ -17,12 +17,68 @@ class UsuarioForm(forms.ModelForm):
             'fecha_nacimiento',
             'id_categoria',
             'estado',
+            'matricula',
         ]
+        widgets = {
+            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
+            'password': forms.PasswordInput(),
+        }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        rol = cleaned_data.get("rol")
+        
+        # Los campos comunes para todos los roles:
+        correo = cleaned_data.get("correo")
+        password = cleaned_data.get("password")
+        nombre = cleaned_data.get("nombre")
+        apellidos = cleaned_data.get("apellidos")
+        estado = cleaned_data.get("estado")
+        
+        if not rol:
+            self.add_error("rol", "El rol es obligatorio.")
+        if not nombre:
+            self.add_error("nombre", "El nombre es obligatorio.")
+        if not apellidos:
+            self.add_error("apellidos", "Los apellidos son obligatorios.")
+        if not correo:
+            self.add_error("correo", "El correo es obligatorio.")
+        if not password:
+            self.add_error("password", "La contraseña es obligatoria.")
+        if not estado:
+            self.add_error("estado", "El estado es obligatorio.")
+
+        # Validar por rol:
+        if rol == 'admin':
+            # Solo se requieren los campos básicos (ya validados arriba)
+            pass
+        elif rol == 'entrenador':
+            # Se requieren: telefono, tipo_documento, num_documento
+            if not cleaned_data.get("telefono"):
+                self.add_error("telefono", "El teléfono es obligatorio para entrenadores.")
+            if not cleaned_data.get("tipo_documento"):
+                self.add_error("tipo_documento", "El tipo de documento es obligatorio para entrenadores.")
+            if not cleaned_data.get("num_documento"):
+                self.add_error("num_documento", "El número de documento es obligatorio para entrenadores.")
+        elif rol == 'miembro':
+            # Se requieren: telefono, tipo_documento, num_documento, fecha_nacimiento, id_categoria, matricula
+            if not cleaned_data.get("telefono"):
+                self.add_error("telefono", "El teléfono es obligatorio para miembros.")
+            if not cleaned_data.get("tipo_documento"):
+                self.add_error("tipo_documento", "El tipo de documento es obligatorio para miembros.")
+            if not cleaned_data.get("num_documento"):
+                self.add_error("num_documento", "El número de documento es obligatorio para miembros.")
+            if not cleaned_data.get("fecha_nacimiento"):
+                self.add_error("fecha_nacimiento", "La fecha de nacimiento es obligatoria para miembros.")
+            # id_categoria se asigna automáticamente según la edad en la vista, así que se ignora aquí.
+            # matricula es un campo booleano; se puede dejar como False por defecto.
+        return cleaned_data
+
 
 class RegistrationForm(forms.ModelForm):
+    # Este formulario se usa para registro desde el front, se mantiene igual.
     password = forms.CharField(widget=forms.PasswordInput, label="Contraseña")
     password_confirm = forms.CharField(widget=forms.PasswordInput, label="Verificar contraseña")
-    # Campo opcional para nivel (solo requerido para adultos)
     nivel = forms.ChoiceField(
         choices=[
             ("basico", "Basico"),
@@ -47,13 +103,12 @@ class RegistrationForm(forms.ModelForm):
             'nivel',
         ]
         widgets = {
-            # Renderiza la fecha como un date picker (HTML5)
             'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
         }
     
     def clean(self):
         cleaned_data = super().clean()
-        # Convertir correo a minúsculas para consistencia
+        # Conversión y validaciones comunes (como se hizo antes)
         correo = cleaned_data.get("correo")
         if correo:
             correo = correo.lower()
@@ -84,6 +139,8 @@ class RegistrationForm(forms.ModelForm):
                 if not nivel:
                     self.add_error('nivel', "Debes seleccionar tu nivel de juego para adultos")
         return cleaned_data
+        return cleaned_data
+
 
 class CustomLoginForm(forms.Form):
     correo = forms.CharField(label="Correo", max_length=50)
@@ -103,3 +160,4 @@ class CustomLoginForm(forms.Form):
                 raise forms.ValidationError("Credenciales incorrectas")
             cleaned_data["user"] = user
         return cleaned_data
+

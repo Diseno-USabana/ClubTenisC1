@@ -1,32 +1,30 @@
-// Validación básica del formulario
+// usuarios/js/usuario_edit.js
 document.addEventListener('DOMContentLoaded', function () {
-    const form = document.querySelector('form');
-    form.addEventListener('submit', function (e) {
-        let valid = true;
-        const correo = document.querySelector('input[name="correo"]');
-        const telefono = document.querySelector('input[name="telefono"]');
-        const num_documento = document.querySelector('input[name="num_documento"]');
-        
-        // Validación del correo electrónico
-        if (!correo.value.match(/^[^@]+@[^@]+\.[^@]+$/)) {
-            alert('Por favor, introduce un correo electrónico válido.');
-            valid = false;
-        }
+    const roleSelect = document.querySelector('#id_rol');
+    const adminFields = document.getElementById('admin-fields');
+    const entrenadorFields = document.getElementById('entrenador-fields');
+    const miembroFields = document.getElementById('miembro-fields');
 
-        // Validación del teléfono (solo números)
-        if (!telefono.value.match(/^\d+$/)) {
-            alert('El teléfono solo debe contener números.');
-            valid = false;
-        }
+    function updateFormFields() {
+        const selectedRole = roleSelect.value;
+        // Ocultar todos los bloques inicialmente
+        if (adminFields) adminFields.style.display = 'none';
+        if (entrenadorFields) entrenadorFields.style.display = 'none';
+        if (miembroFields) miembroFields.style.display = 'none';
 
-        // Validación del número de documento (solo números)
-        if (!num_documento.value.match(/^\d+$/)) {
-            alert('El número de documento solo debe contener números.');
-            valid = false;
+        // Mostrar el bloque correspondiente
+        if (selectedRole === 'admin') {
+            if (adminFields) adminFields.style.display = 'block';
+        } else if (selectedRole === 'entrenador') {
+            if (entrenadorFields) entrenadorFields.style.display = 'block';
+        } else if (selectedRole === 'miembro') {
+            if (miembroFields) miembroFields.style.display = 'block';
         }
+    }
 
-        if (!valid) {
-            e.preventDefault(); // Detener la presentación del formulario si la validación falla
-        }
-    });
+    if (roleSelect) {
+        roleSelect.addEventListener('change', updateFormFields);
+        // Ejecutar al cargar para mostrar el bloque correcto
+        updateFormFields();
+    }
 });
