@@ -2,96 +2,248 @@
 {% extends '_base.html' %}
 {% load static %}
 
-
 {% block content %}
-<div class="auth-container" style="max-width: 400px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
-  <h2 style="text-align: center;">
-    {% if action == "login" %}
-      Iniciar Sesión
-    {% else %}
-      Registro de Usuario
-    {% endif %}
-  </h2>
-  
-  {% if action == "login" %}
-    <form method="post" id="authForm">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit" style="width: 100%; padding: 10px; background-color: #89023e; color: white; border: none; border-radius: 5px;">
-        Ingresar
-      </button>
-    </form>
-  {% else %}
-    {# Renderizamos los campos del formulario de registro manualmente #}
-    <form method="post" id="authForm">
-      {% csrf_token %}
-      <p>
-        {{ form.nombre.label_tag }}<br>
-        {{ form.nombre }}
-        {{ form.nombre.errors }}
-      </p>
-      <p>
-        {{ form.apellidos.label_tag }}<br>
-        {{ form.apellidos }}
-        {{ form.apellidos.errors }}
-      </p>
-      <p>
-        {{ form.telefono.label_tag }}<br>
-        {{ form.telefono }}
-        {{ form.telefono.errors }}
-      </p>
-      <p>
-        {{ form.correo.label_tag }}<br>
-        {{ form.correo }}
-        {{ form.correo.errors }}
-      </p>
-      <p>
-        {{ form.password.label_tag }}<br>
-        {{ form.password }}
-        {{ form.password.errors }}
-      </p>
-      <p>
-        {{ form.password_confirm.label_tag }}<br>
-        {{ form.password_confirm }}
-        {{ form.password_confirm.errors }}
-      </p>
-      <p>
-        {{ form.tipo_documento.label_tag }}<br>
-        {{ form.tipo_documento }}
-        {{ form.tipo_documento.errors }}
-      </p>
-      <p>
-        {{ form.num_documento.label_tag }}<br>
-        {{ form.num_documento }}
-        {{ form.num_documento.errors }}
-      </p>
-      <p>
-        {{ form.fecha_nacimiento.label_tag }}<br>
-        {{ form.fecha_nacimiento }}
-        {{ form.fecha_nacimiento.errors }}
-      </p>
-      <div id="nivel-container" style="display:none;">
-        <p>
-          {{ form.nivel.label_tag }}<br>
-          {{ form.nivel }}
-          {{ form.nivel.errors }}
-        </p>
-      </div>
-      <button type="submit" style="width: 100%; padding: 10px; background-color: #89023e; color: white; border: none; border-radius: 5px;">
-        Registrarse
-      </button>
-    </form>
-  {% endif %}
-  
-  <div style="text-align: center; margin-top: 15px;">
-    {% if action == "login" %}
-      <p>¿No te has registrado? <a href="{% url 'usuarios:register' %}">¡Crea tu cuenta!</a></p>
-    {% else %}
-      <p>¿Ya tienes cuenta? <a href="{% url 'usuarios:login' %}">Inicia sesión</a></p>
-    {% endif %}
+<div class="auth-wrapper">
+  <div class="auth-container {% if action == 'login' %}login-mode{% endif %}">
+    <div class="form-container">
+      {% if action == "login" %}
+        <!-- Formulario de login -->
+        <h2 class="form-title2">
+          <img src="{% static 'img/tennis-ball.png' %}" alt="Pelota" class="icon">
+          BIENVENIDO
+          <img src="{% static 'img/tennis-ball.png' %}" alt="Pelota" class="icon">
+        </h2>
+        <form method="post" id="authForm">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="id_correo">Correo</label>
+            <input type="email" name="correo" id="id_correo" required>
+          </div>
+
+          <div class="form-group password-group">
+            <label for="id_password">Contraseña</label>
+            <input type="password" name="password" id="id_password" required>
+            <span class="eye-icon">👁️</span>
+          </div>
+
+          <button type="submit" class="btn">Ingresar</button>
+        </form>
+
+        <div class="register-link">
+          <p>¿No te has registrado? <a href="{% url 'usuarios:register' %}">¡Crea tu cuenta Aquí!</a></p>
+        </div>
+
+      {% else %}
+        <!-- Formulario de registro -->
+        <h2 class="form-title">
+          <img src="{% static 'img/tennis-ball.png' %}" alt="Pelota" class="icon">
+          Únete a nuestra familia
+          <img src="{% static 'img/tennis-ball.png' %}" alt="Pelota" class="icon">
+        </h2>
+        <form method="post" id="authForm">
+          {% csrf_token %}
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="id_nombre">Nombre/s</label>
+              <input type="text" name="nombre" id="id_nombre" required>
+            </div>
+            <div class="form-group">
+              <label for="id_apellidos">Apellido/s</label>
+              <input type="text" name="apellidos" id="id_apellidos" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="id_tipo_documento">Tipo Doc</label>
+              <select name="tipo_documento" id="id_tipo_documento">
+                <option value="">----</option>
+                {{ form.tipo_documento.field.choices }}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="id_num_documento">Identificación</label>
+              <input type="text" name="num_documento" id="id_num_documento" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="id_fecha_nacimiento">Fecha de nacimiento</label>
+            <input type="date" name="fecha_nacimiento" id="id_fecha_nacimiento" required placeholder="DD/MM/AAAA">
+          </div>
+
+          <div class="form-group">
+            <label for="id_correo">Correo</label>
+            <input type="email" name="correo" id="id_correo" required>
+          </div>
+
+          <div class="form-group">
+            <label for="id_telefono">Teléfono</label>
+            <input type="tel" name="telefono" id="id_telefono" required>
+          </div>
+
+          <div class="form-group password-group">
+            <label for="id_password">Contraseña</label>
+            <input type="password" name="password" id="id_password" required>
+            <span class="eye-icon">👁️</span>
+          </div>
+
+          <div class="form-group password-group">
+            <label for="id_password_confirm">Confirmar contraseña</label>
+            <input type="password" name="password_confirm" id="id_password_confirm" required>
+            <span class="eye-icon">👁️</span>
+          </div>
+
+          <button type="submit" class="btn">Registrate</button>
+          <div class="register-link">
+            <p>¿Ya tienes una cuenta? <a href="{% url 'usuarios:login' %}">¡Ingresa Aquí!</a></p>
+          </div>  
+        </form>
+      {% endif %}
+    </div>
   </div>
 </div>
-{% if action == "register" %}
-  <script src="{% static 'usuarios/js/login.js' %}"></script>
-{% endif %}
+
+
+<style>
+  .form-title {
+    display: flex;
+    align-items: center;
+    padding-left: 165px;
+  }
+
+    /* Contenedor de fondo que ocupa toda la pantalla */
+    .auth-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-image: url('{% static "img/tennis-court.jpg" %}');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Caja del formulario */
+  .auth-container {
+    background: rgba(255, 255, 255, 0.95);
+    width: 90vw; /* Ocupará el 90% del ancho de la pantalla */
+    height: 80vh; /* Ocupará el 80% de la altura de la pantalla */
+    max-width: 800px; /* Máximo ancho */
+    max-height: 90vh; /* Máximo alto */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+
+    /* Estilos base */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Si es LOGIN, centramos todo y quitamos el scroll */
+  .auth-container.login-mode {
+    justify-content: center;
+    align-items: center;
+    height: auto; /* Ajustar según el contenido */
+    padding: 50px 40px; /* Hacerlo más compacto */
+  }
+
+  /* Si es REGISTRO, permitimos el scroll */
+  .form-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto; /* Activar scroll si hay muchos campos */
+    padding-right: 10px; /* Espacio para que el scroll no tape contenido */
+  }
+
+  /* Ajustar el formulario */
+  .auth-container form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  /* Asegurar que los campos sean visibles */
+  .form-group {
+    width: 100%;
+    position: relative;
+  }
+
+  /* Inputs y selects ajustados al 100% dentro del formulario */
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #8B4513;
+    border-radius: 5px;
+  }
+
+  /* Filas de dos columnas */
+  .form-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .form-row .form-group {
+    flex: 1;
+  }
+
+  /* Botón */
+  .btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #5D4037;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+  }
+
+  .btn:hover {
+    background-color: #3E2723;
+  }
+
+  /* Icono de ojo para mostrar/ocultar contraseña */
+  .password-group {
+    position: relative;
+  }
+
+  .eye-icon {
+    position: absolute;
+    right: 10px;
+    top: 35px;
+    cursor: pointer;
+  }
+
+  /* Iconos */
+  .icon {
+    width: 30px;
+    margin: 0 10px;
+  }
+
+  /* Enlace de registro */
+  .register-link {
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .register-link a {
+    color: #8B4513;
+    font-weight: bold;
+  }
+
+
+</style>
+
 {% endblock %}
