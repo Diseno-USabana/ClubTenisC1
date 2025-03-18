@@ -1,5 +1,7 @@
 {# templates/usuarios/login.html #}
 {% extends '_base.html' %}
+{% load static %}
+
 
 {% block content %}
 <div class="auth-container" style="max-width: 400px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
@@ -10,17 +12,77 @@
       Registro de Usuario
     {% endif %}
   </h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" style="width: 100%; padding: 10px; background-color: #89023e; color: white; border: none; border-radius: 5px;">
-      {% if action == "login" %}
+  
+  {% if action == "login" %}
+    <form method="post" id="authForm">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" style="width: 100%; padding: 10px; background-color: #89023e; color: white; border: none; border-radius: 5px;">
         Ingresar
-      {% else %}
+      </button>
+    </form>
+  {% else %}
+    {# Renderizamos los campos del formulario de registro manualmente #}
+    <form method="post" id="authForm">
+      {% csrf_token %}
+      <p>
+        {{ form.nombre.label_tag }}<br>
+        {{ form.nombre }}
+        {{ form.nombre.errors }}
+      </p>
+      <p>
+        {{ form.apellidos.label_tag }}<br>
+        {{ form.apellidos }}
+        {{ form.apellidos.errors }}
+      </p>
+      <p>
+        {{ form.telefono.label_tag }}<br>
+        {{ form.telefono }}
+        {{ form.telefono.errors }}
+      </p>
+      <p>
+        {{ form.correo.label_tag }}<br>
+        {{ form.correo }}
+        {{ form.correo.errors }}
+      </p>
+      <p>
+        {{ form.password.label_tag }}<br>
+        {{ form.password }}
+        {{ form.password.errors }}
+      </p>
+      <p>
+        {{ form.password_confirm.label_tag }}<br>
+        {{ form.password_confirm }}
+        {{ form.password_confirm.errors }}
+      </p>
+      <p>
+        {{ form.tipo_documento.label_tag }}<br>
+        {{ form.tipo_documento }}
+        {{ form.tipo_documento.errors }}
+      </p>
+      <p>
+        {{ form.num_documento.label_tag }}<br>
+        {{ form.num_documento }}
+        {{ form.num_documento.errors }}
+      </p>
+      <p>
+        {{ form.fecha_nacimiento.label_tag }}<br>
+        {{ form.fecha_nacimiento }}
+        {{ form.fecha_nacimiento.errors }}
+      </p>
+      <div id="nivel-container" style="display:none;">
+        <p>
+          {{ form.nivel.label_tag }}<br>
+          {{ form.nivel }}
+          {{ form.nivel.errors }}
+        </p>
+      </div>
+      <button type="submit" style="width: 100%; padding: 10px; background-color: #89023e; color: white; border: none; border-radius: 5px;">
         Registrarse
-      {% endif %}
-    </button>
-  </form>
+      </button>
+    </form>
+  {% endif %}
+  
   <div style="text-align: center; margin-top: 15px;">
     {% if action == "login" %}
       <p>¿No te has registrado? <a href="{% url 'usuarios:register' %}">¡Crea tu cuenta!</a></p>
@@ -29,4 +91,7 @@
     {% endif %}
   </div>
 </div>
+{% if action == "register" %}
+  <script src="{% static 'usuarios/js/login.js' %}"></script>
+{% endif %}
 {% endblock %}

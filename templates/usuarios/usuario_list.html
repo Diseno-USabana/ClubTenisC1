@@ -4,6 +4,13 @@
 {% block content %}
   <h1>Usuarios</h1>
   <hr>
+  
+  {% if can_create %}
+    <p>
+      <a href="{% url 'usuarios:create' %}" class="btn btn-primary">Crear Usuario</a>
+    </p>
+  {% endif %}
+
   <ul>
     {% for usuario in usuarios %}
       <li>

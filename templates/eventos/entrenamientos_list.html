@@ -22,7 +22,6 @@
             Cupo: {{ evento.asistencias_entrenamiento.count }} / {{ evento.capacidad }}
           </p>
           {% if current_role == "miembro" %}
-            {# Para miembros, solo se muestran los botones de inscripción/desinscripción #}
             {% if user_inscripciones_entrenamiento and evento.id in user_inscripciones_entrenamiento %}
               <form action="{% url 'eventos:desinscribirse_entrenamiento' evento.id %}" method="post">
                 {% csrf_token %}

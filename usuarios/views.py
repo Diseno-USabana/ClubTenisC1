@@ -1,15 +1,34 @@
 # usuarios/views.py
 from django.urls import reverse_lazy, reverse
-from django.views.generic import ListView, DetailView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, UpdateView, DeleteView, CreateView
 from django.views.generic.edit import FormView
 from django.contrib import messages
-from .models import Usuario
+from .models import Usuario, Categoria
 from .forms import UsuarioForm, RegistrationForm, CustomLoginForm
 from django.views import View
 from django.shortcuts import redirect
+from datetime import date
+from django.core.exceptions import PermissionDenied
 
-# Importamos los mixins desde la carpeta utils (asegúrate de que la carpeta utils esté en PYTHONPATH)
 from utils.role_mixins import AdminRequiredForListMixin, SoloPropioMixin
+
+class UsuarioCreateView(AdminRequiredForListMixin, CreateView):
+    """
+    Vista para que el admin pueda crear nuevos usuarios.
+    Se utiliza el mismo formulario y template que en la edición.
+    """
+    model = Usuario
+    form_class = UsuarioForm
+    template_name = 'usuarios/usuario_edit.html'
+    success_url = reverse_lazy('usuarios:list')
+
+    def form_valid(self, form):
+        # Verificamos que el usuario actual es admin usando el método del mixin.
+        current_user = self.get_current_user(self.request)
+        if not current_user or current_user.rol != 'admin':
+            raise PermissionDenied("Solo el admin puede crear usuarios.")
+        # Aquí se podría agregar lógica adicional si se requiriera.
+        return super().form_valid(form)
 
 class UsuarioListView(AdminRequiredForListMixin, ListView):
     model = Usuario
@@ -22,11 +41,20 @@ class UsuarioListView(AdminRequiredForListMixin, ListView):
             if estado == 'inscrito':
                 estado_filtrado = 'activo'
             elif estado == 'matriculado':
-                estado_filtrado = 'activo'  # O el valor que corresponda
+                estado_filtrado = 'activo'
             else:
                 estado_filtrado = estado
             qs = qs.filter(estado=estado_filtrado)
         return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        current_user = self.get_current_user(self.request)
+        if current_user:
+            context['can_create'] = (current_user.rol == 'admin')
+            # Por ejemplo, puedes pasar también el rol en el contexto
+            context['current_role'] = current_user.rol
+        return context
 
 class UsuarioDetailView(SoloPropioMixin, DetailView):
     model = Usuario
@@ -35,12 +63,8 @@ class UsuarioDetailView(SoloPropioMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Obtenemos el id del usuario desde la sesión y lo convertimos en objeto Usuario
-        current_user_id = self.request.session.get('custom_user_id')
-        try:
-            context['current_user'] = Usuario.objects.get(id=current_user_id)
-        except Usuario.DoesNotExist:
-            context['current_user'] = None
+        current_user = self.get_current_user(self.request)
+        context['current_user'] = current_user
         return context
 
 class UsuarioUpdateView(SoloPropioMixin, UpdateView):
@@ -60,17 +84,13 @@ class UsuarioDeleteView(SoloPropioMixin, DeleteView):
     success_url = reverse_lazy('usuarios:list')
 
     def dispatch(self, request, *args, **kwargs):
-        # Obtenemos el usuario logueado usando el método del mixin
         current_user = self.get_current_user(request)
         if not current_user:
             return redirect('usuarios:login')
-        # Solo el admin puede eliminar; aunque el mixin SoloPropioMixin permita a un usuario acceder a su propio registro,
-        # aquí se fuerza que si el rol no es 'admin' se bloquee la acción.
         if current_user.rol != 'admin':
             from django.core.exceptions import PermissionDenied
             raise PermissionDenied("Solo el admin puede eliminar usuarios.")
         return super().dispatch(request, *args, **kwargs)
-
 
 class CustomLoginView(FormView):
     """
@@ -88,7 +108,6 @@ class CustomLoginView(FormView):
 
     def form_valid(self, form):
         user = form.cleaned_data.get("user")
-        # Guardamos el id del usuario en la sesión (login manual)
         self.request.session['custom_user_id'] = user.id
         messages.success(self.request, "Login exitoso")
         return super().form_valid(form)
@@ -99,7 +118,7 @@ class CustomLogoutView(View):
     y redirige al login.
     """
     def get(self, request, *args, **kwargs):
-        request.session.flush()  # Limpia toda la sesión
+        request.session.flush()
         messages.info(request, "Has cerrado sesión")
         return redirect('usuarios:login')
 
@@ -119,7 +138,30 @@ class RegistrationView(FormView):
 
     def form_valid(self, form):
         user = form.save(commit=False)
+        user.rol = 'miembro'
         user.estado = 'activo'
+        if user.fecha_nacimiento:
+            today = date.today()
+            age = today.year - user.fecha_nacimiento.year  # Solo se usa el año
+            # Asignar la categoría según la edad
+            if age < 6:
+                cat_name = "bola-roja"
+            elif age < 10:
+                cat_name = "bola-naranja"
+            elif age < 12:
+                cat_name = "bola-verde"
+            elif age < 14:
+                cat_name = "sub-14"
+            elif age < 16:
+                cat_name = "sub-16"
+            elif age <= 21:
+                cat_name = "sub-21"
+            else:
+                # Adultos: se usa el valor del campo 'nivel'
+                cat_name = form.cleaned_data.get("nivel")
+            categoria, created = Categoria.objects.get_or_create(nombre=cat_name)
+            user.id_categoria = categoria
         user.set_password(form.cleaned_data['password'])
         user.save()
         return super().form_valid(form)
+

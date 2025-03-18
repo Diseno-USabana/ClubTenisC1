@@ -3,10 +3,21 @@ from django.db import models
 from django.contrib.auth.hashers import make_password, check_password
 
 class Categoria(models.Model):
-    nombre = models.CharField(max_length=100)
+    CATEGORIA_CHOICES = [
+       ("bola-roja", "Bola Roja"),
+       ("bola-naranja", "Bola Naranja"),
+       ("bola-verde", "Bola Verde"),
+       ("sub-14", "Sub 14"),
+       ("sub-16", "Sub 16"),
+       ("sub-21", "Sub 21"),
+       ("basico", "Basico"),
+       ("intermedio", "Intermedio"),
+       ("avanzado", "Avanzado"),
+    ]
+    nombre = models.CharField(max_length=100, choices=CATEGORIA_CHOICES, unique=True)
 
     def __str__(self):
-        return self.nombre
+        return dict(self.CATEGORIA_CHOICES).get(self.nombre, self.nombre)
 
 class Usuario(models.Model):
     rol = models.CharField(
