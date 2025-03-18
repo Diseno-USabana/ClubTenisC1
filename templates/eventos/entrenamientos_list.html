@@ -1,48 +1,58 @@
 {% extends '_base.html' %}
 
 {% block content %}
-  <h1>Entrenamientos Disponibles</h1>
+<div class="container mt-4">
+    <div class="text-center my-4">
+        <p class="lead">Únete a nuestro entrenamiento de tenis y mejora tu técnica, resistencia y estrategia. 🏆 No esperes más, ¡el campeón dentro de ti está listo para brillar! 🎉💥 #EntrenaParaGanar</p>
+    </div>
 
-  {% if can_create %}
-    <p>
-      <a href="{% url 'eventos:create' %}?tipo=entrenamiento">
-        Crear Nuevo Entrenamiento
-      </a>
-    </p>
-  {% endif %}
+    {% if eventos %}
+        {% for evento in eventos %}
+    <div class="card mb-3 shadow-sm rounded bg-light">
+        <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="card-title">{{ evento.nombre }}</h5>
+                <p class="card-text text-muted">{{ evento.fecha|date:"l d F Y" }}<br>Hora: {{ evento.hora }}</p>
+                <p class="card-text"><i class="fas fa-user"></i> {{ evento.asistencias_entrenamiento.count }} / {{ evento.capacidad }}</p>
+            </div>
+            <div>
+                {% if current_role == "miembro" %}
+                    {% if user_inscripciones_entrenamiento and evento.id in user_inscripciones_entrenamiento %}
+                        <form action="{% url 'eventos:desinscribirse_entrenamiento' evento.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-secondary">Cancelar</button>
+                        </form>
+                    {% else %}
+                        <form action="{% url 'eventos:inscribirse_entrenamiento' evento.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-brown">Reservar</button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'eventos:entrenamiento_detail' evento.id %}" class="btn btn-outline-brown">Ver Detalle</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endfor %}
+    {% else %}
+        <p class="text-center">No hay entrenamientos disponibles.</p>
+    {% endif %}
+</div>
 
-  {% if eventos %}
-    <ul>
-      {% for evento in eventos %}
-        <li>
-          <h2>{{ evento.nombre }}</h2>
-          <p>
-            Fecha: {{ evento.fecha }} — Hora: {{ evento.hora }}<br>
-            Duración: {{ evento.duracion }} minutos<br>
-            Cupo: {{ evento.asistencias_entrenamiento.count }} / {{ evento.capacidad }}
-          </p>
-          {% if current_role == "miembro" %}
-            {% if user_inscripciones_entrenamiento and evento.id in user_inscripciones_entrenamiento %}
-              <form action="{% url 'eventos:desinscribirse_entrenamiento' evento.id %}" method="post">
-                {% csrf_token %}
-                <button type="submit">Desinscribirse</button>
-              </form>
-            {% else %}
-              <form action="{% url 'eventos:inscribirse_entrenamiento' evento.id %}" method="post">
-                {% csrf_token %}
-                <button type="submit">Inscribirse</button>
-              </form>
-            {% endif %}
-          {% else %}
-            {# Para admin o entrenador, se muestra el enlace para ver detalles #}
-            <p>
-              <a href="{% url 'eventos:entrenamiento_detail' evento.id %}">Ver Detalle</a>
-            </p>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No hay entrenamientos disponibles.</p>
-  {% endif %}
+<div class="fixed-bottom bg-brown p-3 text-center">
+  <p class="text-white mb-1">¡Reserva ya! Reserva tu entrenamiento para poder cumplir con los cupos limitados de cada entrenamiento</p>
+    
+  {% if current_role == "admin" or current_role == "entrenador" %}
+    <a href="{% url 'eventos:create' %}?tipo=entrenamiento" class="btn btn-brown btn-bordered">Crear Nuevo Entrenamiento</a>
+{% endif %}
+
+<style>
+    .bg-brown { background-color: #6F4E37; }
+    .btn-brown { background-color: #6F4E37; color: white; border: 2px solid #5A3C2E; }
+    .btn-outline-brown { border-color: #6F4E37; color: #6F4E37; }
+    .btn-brown:hover, .btn-outline-brown:hover { background-color: #5A3C2E; color: white; }
+    .btn-bordered { border: 2px solid white; border-radius: 8px; }
+</style>
+
 {% endblock %}
