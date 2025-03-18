@@ -1,46 +1,37 @@
-<!-- templates/informes/informes_list.html -->
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Informes</title>
-</head>
-<body>
-    <h1>Generar Informes</h1>
+{% extends "base.html" %}
+{% block title %}Listado de Informes{% endblock %}
 
-    <!-- Formulario para enviar anio y mes -->
-    <form method="POST" action="">
-        {% csrf_token %}
-        <label for="anio">Año:</label>
-        <input type="text" name="anio" id="anio" placeholder="2025">
-        <label for="mes">Mes:</label>
-        <input type="text" name="mes" id="mes" placeholder="01">
-        <button type="submit">Generar</button>
-    </form>
-
-    <hr>
-    <h2>Lista de Informes</h2>
-    {% if informes %}
-        <ul>
-        {% for inf in informes %}
-            <li>
-                Informe ID: {{ inf.id }} - Usuario: {{ inf.usuario }}<br>
-                Mes/Año: {{ inf.mes }}/{{ inf.anio }}<br>
-                Clases Mes: {{ inf.clases_mes }}<br>
-                Clases Asistidas: {{ inf.clases_asistidas }}<br>
-                Torneos Asistidos: {{ inf.torneos_asistidos }}<br>
-                <b>Top Torneos:</b>
-                <ul>
-                {% for torneo in inf.top_torneos %}
-                    <li>{{ torneo.nombre }} (puesto {{ torneo.puesto }})</li>
-                {% endfor %}
-                </ul>
-                <hr>
-            </li>
+{% block content %}
+<h1>Listado de Informes</h1>
+<a href="{% url 'informes:create' %}" class="btn btn-primary mb-3">Crear Informe</a>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Mes/Año</th>
+            <th>Clases</th>
+            <th>Clases Asistidas</th>
+            <th>Torneos Asistidos</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for informe in informes %}
+        <tr>
+            <td>{{ informe.id }}</td>
+            <td>{{ informe.usuario }}</td>
+            <td>{{ informe.get_mes_display }}/{{ informe.anio }}</td>
+            <td>{{ informe.clases }}</td>
+            <td>{{ informe.clases_asistidas }}</td>
+            <td>{{ informe.torneos_asistidos }}</td>
+            <td>
+                <a href="{% url 'informes:detail' informe.id %}" class="btn btn-info btn-sm">Ver</a>
+                <a href="{% url 'informes:update' informe.id %}" class="btn btn-warning btn-sm">Editar</a>
+                <a href="{% url 'informes:delete' informe.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+            </td>
+        </tr>
         {% endfor %}
-        </ul>
-    {% else %}
-        <p>No hay informes generados.</p>
-    {% endif %}
-</body>
-</html>
+    </tbody>
+</table>
+{% endblock %}
