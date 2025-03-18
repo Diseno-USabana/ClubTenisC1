@@ -1,30 +1,41 @@
-{# templates/usuarios/usuario_detail.html #}
 {% extends '_base.html' %}
 {% load static %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'usuarios/css/usuario_detail.css' %}">
 
-<div class="container">
-    <h1>Información del Usuario</h1>
-    <hr>
-    <p><strong>Nombre:</strong> {{ usuario.nombre }}</p>
-    <p><strong>Apellidos:</strong> {{ usuario.apellidos }}</p>
-    <p><strong>Correo:</strong> {{ usuario.correo }}</p>
-    <p><strong>Teléfono:</strong> {{ usuario.telefono }}</p>
-    <p><strong>Tipo de Documento:</strong> {{ usuario.tipo_documento }}</p>
-    <p><strong>Número de Documento:</strong> {{ usuario.num_documento }}</p>
-    <p><strong>Fecha de Nacimiento:</strong> {{ usuario.fecha_nacimiento }}</p>
-    <p><strong>Estado:</strong> {{ usuario.estado }}</p>
-    
-    <div>
-        <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">Regresar</a>
-        <a href="{% url 'usuarios:edit' usuario.id %}" class="btn btn-primary">Editar</a>
-        {# Solo muestra el botón de eliminar si el usuario logueado es admin #}
-        {% if current_user and current_user.rol == 'admin' %}
-            <a href="{% url 'usuarios:delete' usuario.id %}" class="btn btn-danger">Eliminar</a>
-        {% endif %}
+<div class="container mt-5">
+    <div class="card shadow-sm p-4 bg-light rounded">
+        <h1 class="text-center text-brown">👤 Información del Usuario</h1>
+        <hr>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item"><strong>📛 Nombre:</strong> {{ usuario.nombre }}</li>
+            <li class="list-group-item"><strong>📝 Apellidos:</strong> {{ usuario.apellidos }}</li>
+            <li class="list-group-item"><strong>📧 Correo:</strong> {{ usuario.correo }}</li>
+            <li class="list-group-item"><strong>📞 Teléfono:</strong> {{ usuario.telefono }}</li>
+            <li class="list-group-item"><strong>🆔 Tipo de Documento:</strong> {{ usuario.tipo_documento }}</li>
+            <li class="list-group-item"><strong>🔢 Número de Documento:</strong> {{ usuario.num_documento }}</li>
+            <li class="list-group-item"><strong>🎂 Fecha de Nacimiento:</strong> {{ usuario.fecha_nacimiento }}</li>
+            <li class="list-group-item"><strong>🔵 Estado:</strong> {{ usuario.estado }}</li>
+        </ul>
+        
+        <div class="text-center mt-4">
+            <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">🔙 Regresar</a>
+            <a href="{% url 'usuarios:edit' usuario.id %}" class="btn btn-brown">✏️ Editar</a>
+            {% if current_user and current_user.rol == 'admin' %}
+                <a href="{% url 'usuarios:delete' usuario.id %}" class="btn btn-danger">🗑️ Eliminar</a>
+            {% endif %}
+        </div>
     </div>
 </div>
-{% endblock %}
 
+<style>
+    .text-brown { color: #6F4E37; }
+    .bg-light { background-color: #f8f9fa; }
+    .btn-brown { background-color: #6F4E37; color: white; border: 2px solid #5A3C2E; padding: 10px 20px; }
+    .btn-brown:hover { background-color: #5A3C2E; }
+    .card { border-radius: 12px; }
+    .list-group-item { border: none; }
+</style>
+
+{% endblock %}

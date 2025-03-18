@@ -4,18 +4,43 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'usuarios/css/usuario_edit.css' %}">
-<div class="container">
-    <h1>Editar Usuario</h1>
-    <form method="post" novalidate>
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit" class="btn-primary">Guardar Cambios</button>
-      {% if usuario %}
-        <a href="{% url 'usuarios:detail' usuario.id %}" class="btn btn-secondary">Cancelar</a>
-      {% else %}
-        <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">Cancelar</a>
-      {% endif %}
-    </form>
+
+<div class="container mt-5">
+    <div class="card shadow-sm p-4 bg-light rounded">
+        <h1 class="text-center text-brown">✏️ Editar Usuario</h1>
+        <hr>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="form-group">
+                {% for field in form %}
+                    {% if field.name != "rol" or request.user.is_superuser %}
+                        <div class="mb-3">
+                            {{ field.label_tag }}
+                            {{ field }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="text-center mt-3">
+                <button type="submit" class="btn btn-brown">💾 Guardar Cambios</button>
+                {% if usuario %}
+                    <a href="{% url 'usuarios:detail' usuario.id %}" class="btn btn-secondary">❌ Cancelar</a>
+                {% else %}
+                    <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">❌ Cancelar</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
 </div>
+
 <script src="{% static 'usuarios/js/usuario_edit.js' %}"></script>
+
+<style>
+    .text-brown { color: #6F4E37; }
+    .bg-light { background-color: #f8f9fa; }
+    .btn-brown { background-color: #6F4E37; color: white; border: 2px solid #5A3C2E; padding: 10px 20px; }
+    .btn-brown:hover { background-color: #5A3C2E; }
+    .card { border-radius: 12px; }
+</style>
+
 {% endblock %}
