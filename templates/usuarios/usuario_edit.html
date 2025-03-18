@@ -7,22 +7,158 @@
 
 <div class="container mt-5">
     <div class="card shadow-sm p-4 bg-light rounded">
-        <h1 class="text-center text-brown">✏️ Editar Usuario</h1>
+        <h1 class="text-center text-brown">
+            {% if usuario %}
+                ✏️ Editar Usuario
+            {% else %}
+                🆕 Crear Usuario
+            {% endif %}
+        </h1>
         <hr>
-        <form method="post" novalidate>
+        <form method="post" id="usuarioForm" novalidate>
             {% csrf_token %}
-            <div class="form-group">
-                {% for field in form %}
-                    {% if field.name != "rol" or request.user.is_superuser %}
-                        <div class="mb-3">
-                            {{ field.label_tag }}
-                            {{ field }}
-                        </div>
-                    {% endif %}
-                {% endfor %}
+            
+            {# Para creación, mostrar el dropdown de rol; en edición, se muestra (puede ser de solo lectura) #}
+            {% if not usuario %}
+            <div id="role-selection" class="mb-3">
+                <label for="id_rol">Rol:</label>
+                {{ form.rol }}
+                {{ form.rol.errors }}
             </div>
+            {% else %}
+                {{ form.rol }}
+            {% endif %}
+            
+            {# Bloques de campos según rol. Estos bloques serán mostrados/ocultados vía JS. #}
+            <div id="admin-fields" style="display: none;">
+                <p>
+                    {{ form.nombre.label_tag }}<br>
+                    {{ form.nombre }}
+                    {{ form.nombre.errors }}
+                </p>
+                <p>
+                    {{ form.apellidos.label_tag }}<br>
+                    {{ form.apellidos }}
+                    {{ form.apellidos.errors }}
+                </p>
+                <p>
+                    {{ form.correo.label_tag }}<br>
+                    {{ form.correo }}
+                    {{ form.correo.errors }}
+                </p>
+                <p>
+                    {{ form.password.label_tag }}<br>
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                </p>
+                <p>
+                    {{ form.estado.label_tag }}<br>
+                    {{ form.estado }}
+                    {{ form.estado.errors }}
+                </p>
+            </div>
+            
+            <div id="entrenador-fields" style="display: none;">
+                <p>
+                    {{ form.nombre.label_tag }}<br>
+                    {{ form.nombre }}
+                    {{ form.nombre.errors }}
+                </p>
+                <p>
+                    {{ form.apellidos.label_tag }}<br>
+                    {{ form.apellidos }}
+                    {{ form.apellidos.errors }}
+                </p>
+                <p>
+                    {{ form.correo.label_tag }}<br>
+                    {{ form.correo }}
+                    {{ form.correo.errors }}
+                </p>
+                <p>
+                    {{ form.telefono.label_tag }}<br>
+                    {{ form.telefono }}
+                    {{ form.telefono.errors }}
+                </p>
+                <p>
+                    {{ form.password.label_tag }}<br>
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                </p>
+                <p>
+                    {{ form.tipo_documento.label_tag }}<br>
+                    {{ form.tipo_documento }}
+                    {{ form.tipo_documento.errors }}
+                </p>
+                <p>
+                    {{ form.num_documento.label_tag }}<br>
+                    {{ form.num_documento }}
+                    {{ form.num_documento.errors }}
+                </p>
+                <p>
+                    {{ form.estado.label_tag }}<br>
+                    {{ form.estado }}
+                    {{ form.estado.errors }}
+                </p>
+            </div>
+            
+            <div id="miembro-fields" style="display: none;">
+                <p>
+                    {{ form.nombre.label_tag }}<br>
+                    {{ form.nombre }}
+                    {{ form.nombre.errors }}
+                </p>
+                <p>
+                    {{ form.apellidos.label_tag }}<br>
+                    {{ form.apellidos }}
+                    {{ form.apellidos.errors }}
+                </p>
+                <p>
+                    {{ form.correo.label_tag }}<br>
+                    {{ form.correo }}
+                    {{ form.correo.errors }}
+                </p>
+                <p>
+                    {{ form.telefono.label_tag }}<br>
+                    {{ form.telefono }}
+                    {{ form.telefono.errors }}
+                </p>
+                <p>
+                    {{ form.password.label_tag }}<br>
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                </p>
+                <p>
+                    {{ form.tipo_documento.label_tag }}<br>
+                    {{ form.tipo_documento }}
+                    {{ form.tipo_documento.errors }}
+                </p>
+                <p>
+                    {{ form.num_documento.label_tag }}<br>
+                    {{ form.num_documento }}
+                    {{ form.num_documento.errors }}
+                </p>
+                <p>
+                    {{ form.fecha_nacimiento.label_tag }}<br>
+                    {{ form.fecha_nacimiento }}
+                    {{ form.fecha_nacimiento.errors }}
+                </p>
+                {# id_categoria se asigna automáticamente, no se muestra #}
+                <p>
+                    {{ form.matricula.label_tag }}<br>
+                    {{ form.matricula }}
+                    {{ form.matricula.errors }}
+                </p>
+                <p>
+                    {{ form.estado.label_tag }}<br>
+                    {{ form.estado }}
+                    {{ form.estado.errors }}
+                </p>
+            </div>
+            
             <div class="text-center mt-3">
-                <button type="submit" class="btn btn-brown">💾 Guardar Cambios</button>
+                <button type="submit" class="btn btn-brown">
+                    {% if usuario %}💾 Guardar Cambios{% else %}Crear Usuario{% endif %}
+                </button>
                 {% if usuario %}
                     <a href="{% url 'usuarios:detail' usuario.id %}" class="btn btn-secondary">❌ Cancelar</a>
                 {% else %}
