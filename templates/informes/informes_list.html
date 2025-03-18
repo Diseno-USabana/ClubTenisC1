@@ -1,0 +1,46 @@
+<!-- templates/informes/informes_list.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informes</title>
+</head>
+<body>
+    <h1>Generar Informes</h1>
+
+    <!-- Formulario para enviar anio y mes -->
+    <form method="POST" action="">
+        {% csrf_token %}
+        <label for="anio">Año:</label>
+        <input type="text" name="anio" id="anio" placeholder="2025">
+        <label for="mes">Mes:</label>
+        <input type="text" name="mes" id="mes" placeholder="01">
+        <button type="submit">Generar</button>
+    </form>
+
+    <hr>
+    <h2>Lista de Informes</h2>
+    {% if informes %}
+        <ul>
+        {% for inf in informes %}
+            <li>
+                Informe ID: {{ inf.id }} - Usuario: {{ inf.usuario }}<br>
+                Mes/Año: {{ inf.mes }}/{{ inf.anio }}<br>
+                Clases Mes: {{ inf.clases_mes }}<br>
+                Clases Asistidas: {{ inf.clases_asistidas }}<br>
+                Torneos Asistidos: {{ inf.torneos_asistidos }}<br>
+                <b>Top Torneos:</b>
+                <ul>
+                {% for torneo in inf.top_torneos %}
+                    <li>{{ torneo.nombre }} (puesto {{ torneo.puesto }})</li>
+                {% endfor %}
+                </ul>
+                <hr>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No hay informes generados.</p>
+    {% endif %}
+</body>
+</html>
