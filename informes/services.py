@@ -3,8 +3,6 @@ from django.db.models import Count, Q
 from .models import Informe, Usuario, Entrenamiento, AsistenciaEntrenamiento, Torneo, AsistenciaTorneo
 
 def contar_clases_asignadas(usuario, mes, anio):
-    # Supón que en Entrenamiento tienes un campo fecha (date o string 'YYYY-MM-DD')
-    # y que AsistenciaEntrenamiento se relaciona con Entrenamiento y Usuario.
     return AsistenciaEntrenamiento.objects.filter(
         usuario=usuario,
         entrenamiento__fecha__startswith=f"{anio}-{mes}"
@@ -24,7 +22,6 @@ def contar_torneos_asistidos(usuario, mes, anio):
     ).count()
 
 def encontrar_top_3_torneos(usuario, mes, anio):
-    # Por ejemplo, si en AsistenciaTorneo tienes campo 'puesto' y relación con Torneo
     asistencias = AsistenciaTorneo.objects.filter(
         usuario=usuario,
         torneo__fecha__startswith=f"{anio}-{mes}"
@@ -50,11 +47,9 @@ def generar_informe(usuario, mes, anio):
     return informe
 
 def generar_informes_para_matriculados(mes, anio):
-    # Asume que Usuario tiene un campo 'estado' que puede ser 'matriculado'
     usuarios = Usuario.objects.filter(estado='matriculado')
     informes = []
     for usuario in usuarios:
-        # Si se quiere evitar duplicados para el mismo mes/año, se podría filtrar y actualizar en lugar de crear
         informe, created = Informe.objects.update_or_create(
             usuario=usuario,
             mes=mes.zfill(2),

@@ -1,25 +1,44 @@
-{# templates/usuarios_list.html #}
 {% extends '_base.html' %}
 
 {% block content %}
-  <h1>Usuarios</h1>
-  <hr>
-  
-  {% if can_create %}
-    <p>
-      <a href="{% url 'usuarios:create' %}" class="btn btn-primary">Crear Usuario</a>
-    </p>
-  {% endif %}
+<div class="container mt-4">
+    <div class="text-center my-4">
+        <h1 class="text-brown">👥 Lista de Usuarios</h1>
+        <hr>
+    </div>
+    
+    {% if can_create %}
+        <div class="text-center mb-3">
+            <a href="{% url 'usuarios:create' %}" class="btn btn-brown btn-bordered">➕ Crear Usuario</a>
+        </div>
+    {% endif %}
+    
+    {% if usuarios %}
+        <div class="row d-flex justify-content-center">
+            {% for usuario in usuarios %}
+                <div class="col-md-4 mb-3">
+                    <div class="card shadow-sm rounded bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{{ usuario.nombre }} {{ usuario.apellidos }}</h5>
+                            <p class="card-text"><strong>Estado:</strong> {{ usuario.estado }}</p>
+                            <a href="{% url 'usuarios:detail' usuario.id %}" class="btn btn-outline-brown">Ver Perfil</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center">No hay usuarios disponibles.</p>
+    {% endif %}
+</div>
 
-  <ul>
-    {% for usuario in usuarios %}
-      <li>
-        <a href="{% url 'usuarios:detail' usuario.id %}">
-          {{ usuario.nombre }} {{ usuario.apellidos }} - Estado: {{ usuario.estado }}
-        </a>
-      </li>
-    {% empty %}
-      <li>No hay usuarios disponibles.</li>
-    {% endfor %}
-  </ul>
+<style>
+    .text-brown { color: #6F4E37; }
+    .bg-light { background-color: #f8f9fa; }
+    .btn-brown { background-color: #6F4E37; color: white; border: 2px solid #5A3C2E; }
+    .btn-outline-brown { border: 2px solid #6F4E37; color: #6F4E37; }
+    .btn-brown:hover, .btn-outline-brown:hover { background-color: #5A3C2E; color: white; }
+    .btn-bordered { border: 2px solid white; border-radius: 8px; }
+    .card { border-radius: 12px; overflow: hidden; }
+</style>
 {% endblock %}

@@ -1,159 +1,181 @@
-{# templates/usuarios/usuario_edit.html #}
 {% extends '_base.html' %}
 {% load static %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'usuarios/css/usuario_edit.css' %}">
-<div class="container">
-    <h1>{% if usuario %}Editar Usuario{% else %}Crear Usuario{% endif %}</h1>
-    <form method="post" id="usuarioForm" novalidate>
-      {% csrf_token %}
-      
-      {# Dropdown para seleccionar el rol (si es creación) #}
-      {% if not usuario %}
-      <div id="role-selection">
-          <label for="id_rol">Rol:</label>
-          {{ form.rol }}
-          {{ form.rol.errors }}
-      </div>
-      {% else %}
-          {{ form.rol }} {# En edición, se muestra el rol pero puede ser de solo lectura o editable según se requiera #}
-      {% endif %}
 
-      {# Se agrupan los campos en bloques, cada uno con un id para ser mostrado u ocultado según el rol #}
-      
-      <div id="admin-fields" style="display: none;">
-          <p>
-            {{ form.nombre.label_tag }}<br>
-            {{ form.nombre }}
-            {{ form.nombre.errors }}
-          </p>
-          <p>
-            {{ form.apellidos.label_tag }}<br>
-            {{ form.apellidos }}
-            {{ form.apellidos.errors }}
-          </p>
-          <p>
-            {{ form.correo.label_tag }}<br>
-            {{ form.correo }}
-            {{ form.correo.errors }}
-          </p>
-          <p>
-            {{ form.password.label_tag }}<br>
-            {{ form.password }}
-            {{ form.password.errors }}
-          </p>
-          <p>
-            {{ form.estado.label_tag }}<br>
-            {{ form.estado }}
-            {{ form.estado.errors }}
-          </p>
-      </div>
-
-      <div id="entrenador-fields" style="display: none;">
-          <p>
-            {{ form.nombre.label_tag }}<br>
-            {{ form.nombre }}
-            {{ form.nombre.errors }}
-          </p>
-          <p>
-            {{ form.apellidos.label_tag }}<br>
-            {{ form.apellidos }}
-            {{ form.apellidos.errors }}
-          </p>
-          <p>
-            {{ form.correo.label_tag }}<br>
-            {{ form.correo }}
-            {{ form.correo.errors }}
-          </p>
-          <p>
-            {{ form.telefono.label_tag }}<br>
-            {{ form.telefono }}
-            {{ form.telefono.errors }}
-          </p>
-          <p>
-            {{ form.password.label_tag }}<br>
-            {{ form.password }}
-            {{ form.password.errors }}
-          </p>
-          <p>
-            {{ form.tipo_documento.label_tag }}<br>
-            {{ form.tipo_documento }}
-            {{ form.tipo_documento.errors }}
-          </p>
-          <p>
-            {{ form.num_documento.label_tag }}<br>
-            {{ form.num_documento }}
-            {{ form.num_documento.errors }}
-          </p>
-          <p>
-            {{ form.estado.label_tag }}<br>
-            {{ form.estado }}
-            {{ form.estado.errors }}
-          </p>
-      </div>
-
-      <div id="miembro-fields" style="display: none;">
-          <p>
-            {{ form.nombre.label_tag }}<br>
-            {{ form.nombre }}
-            {{ form.nombre.errors }}
-          </p>
-          <p>
-            {{ form.apellidos.label_tag }}<br>
-            {{ form.apellidos }}
-            {{ form.apellidos.errors }}
-          </p>
-          <p>
-            {{ form.correo.label_tag }}<br>
-            {{ form.correo }}
-            {{ form.correo.errors }}
-          </p>
-          <p>
-            {{ form.telefono.label_tag }}<br>
-            {{ form.telefono }}
-            {{ form.telefono.errors }}
-          </p>
-          <p>
-            {{ form.password.label_tag }}<br>
-            {{ form.password }}
-            {{ form.password.errors }}
-          </p>
-          <p>
-            {{ form.tipo_documento.label_tag }}<br>
-            {{ form.tipo_documento }}
-            {{ form.tipo_documento.errors }}
-          </p>
-          <p>
-            {{ form.num_documento.label_tag }}<br>
-            {{ form.num_documento }}
-            {{ form.num_documento.errors }}
-          </p>
-          <p>
-            {{ form.fecha_nacimiento.label_tag }}<br>
-            {{ form.fecha_nacimiento }}
-            {{ form.fecha_nacimiento.errors }}
-          </p>
-          {# El campo id_categoria se asigna automáticamente, por lo que no se muestra #}
-          <p>
-            {{ form.matricula.label_tag }}<br>
-            {{ form.matricula }}
-            {{ form.matricula.errors }}
-          </p>
-          <p>
-            {{ form.estado.label_tag }}<br>
-            {{ form.estado }}
-            {{ form.estado.errors }}
-          </p>
-      </div>
-      
-      <button type="submit" class="btn-primary">{% if usuario %}Guardar Cambios{% else %}Crear Usuario{% endif %}</button>
-      {% if usuario %}
-        <a href="{% url 'usuarios:detail' usuario.id %}" class="btn btn-secondary">Cancelar</a>
-      {% else %}
-        <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">Cancelar</a>
-      {% endif %}
-    </form>
+<div class="container mt-5">
+    <div class="card shadow-sm p-4 bg-light rounded">
+        <h1 class="text-center text-brown">
+            {% if usuario %}
+                ✏️ Editar Usuario
+            {% else %}
+                🆕 Crear Usuario
+            {% endif %}
+        </h1>
+        <hr>
+        <form method="post" id="usuarioForm" novalidate>
+            {% csrf_token %}
+            
+            {# Para creación, mostrar el dropdown de rol; en edición, se muestra (puede ser de solo lectura) #}
+            {% if not usuario %}
+            <div id="role-selection" class="mb-3">
+                <label for="id_rol">Rol:</label>
+                {{ form.rol }}
+                {{ form.rol.errors }}
+            </div>
+            {% else %}
+                {{ form.rol }}
+            {% endif %}
+            
+            {# Bloques de campos según rol. Estos bloques serán mostrados/ocultados vía JS. #}
+            <div id="admin-fields" style="display: none;">
+                <p>
+                    {{ form.nombre.label_tag }}<br>
+                    {{ form.nombre }}
+                    {{ form.nombre.errors }}
+                </p>
+                <p>
+                    {{ form.apellidos.label_tag }}<br>
+                    {{ form.apellidos }}
+                    {{ form.apellidos.errors }}
+                </p>
+                <p>
+                    {{ form.correo.label_tag }}<br>
+                    {{ form.correo }}
+                    {{ form.correo.errors }}
+                </p>
+                <p>
+                    {{ form.password.label_tag }}<br>
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                </p>
+                <p>
+                    {{ form.estado.label_tag }}<br>
+                    {{ form.estado }}
+                    {{ form.estado.errors }}
+                </p>
+            </div>
+            
+            <div id="entrenador-fields" style="display: none;">
+                <p>
+                    {{ form.nombre.label_tag }}<br>
+                    {{ form.nombre }}
+                    {{ form.nombre.errors }}
+                </p>
+                <p>
+                    {{ form.apellidos.label_tag }}<br>
+                    {{ form.apellidos }}
+                    {{ form.apellidos.errors }}
+                </p>
+                <p>
+                    {{ form.correo.label_tag }}<br>
+                    {{ form.correo }}
+                    {{ form.correo.errors }}
+                </p>
+                <p>
+                    {{ form.telefono.label_tag }}<br>
+                    {{ form.telefono }}
+                    {{ form.telefono.errors }}
+                </p>
+                <p>
+                    {{ form.password.label_tag }}<br>
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                </p>
+                <p>
+                    {{ form.tipo_documento.label_tag }}<br>
+                    {{ form.tipo_documento }}
+                    {{ form.tipo_documento.errors }}
+                </p>
+                <p>
+                    {{ form.num_documento.label_tag }}<br>
+                    {{ form.num_documento }}
+                    {{ form.num_documento.errors }}
+                </p>
+                <p>
+                    {{ form.estado.label_tag }}<br>
+                    {{ form.estado }}
+                    {{ form.estado.errors }}
+                </p>
+            </div>
+            
+            <div id="miembro-fields" style="display: none;">
+                <p>
+                    {{ form.nombre.label_tag }}<br>
+                    {{ form.nombre }}
+                    {{ form.nombre.errors }}
+                </p>
+                <p>
+                    {{ form.apellidos.label_tag }}<br>
+                    {{ form.apellidos }}
+                    {{ form.apellidos.errors }}
+                </p>
+                <p>
+                    {{ form.correo.label_tag }}<br>
+                    {{ form.correo }}
+                    {{ form.correo.errors }}
+                </p>
+                <p>
+                    {{ form.telefono.label_tag }}<br>
+                    {{ form.telefono }}
+                    {{ form.telefono.errors }}
+                </p>
+                <p>
+                    {{ form.password.label_tag }}<br>
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                </p>
+                <p>
+                    {{ form.tipo_documento.label_tag }}<br>
+                    {{ form.tipo_documento }}
+                    {{ form.tipo_documento.errors }}
+                </p>
+                <p>
+                    {{ form.num_documento.label_tag }}<br>
+                    {{ form.num_documento }}
+                    {{ form.num_documento.errors }}
+                </p>
+                <p>
+                    {{ form.fecha_nacimiento.label_tag }}<br>
+                    {{ form.fecha_nacimiento }}
+                    {{ form.fecha_nacimiento.errors }}
+                </p>
+                {# id_categoria se asigna automáticamente, no se muestra #}
+                <p>
+                    {{ form.matricula.label_tag }}<br>
+                    {{ form.matricula }}
+                    {{ form.matricula.errors }}
+                </p>
+                <p>
+                    {{ form.estado.label_tag }}<br>
+                    {{ form.estado }}
+                    {{ form.estado.errors }}
+                </p>
+            </div>
+            
+            <div class="text-center mt-3">
+                <button type="submit" class="btn btn-brown">
+                    {% if usuario %}💾 Guardar Cambios{% else %}Crear Usuario{% endif %}
+                </button>
+                {% if usuario %}
+                    <a href="{% url 'usuarios:detail' usuario.id %}" class="btn btn-secondary">❌ Cancelar</a>
+                {% else %}
+                    <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">❌ Cancelar</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
 </div>
+
 <script src="{% static 'usuarios/js/usuario_edit.js' %}"></script>
+
+<style>
+    .text-brown { color: #6F4E37; }
+    .bg-light { background-color: #f8f9fa; }
+    .btn-brown { background-color: #6F4E37; color: white; border: 2px solid #5A3C2E; padding: 10px 20px; }
+    .btn-brown:hover { background-color: #5A3C2E; }
+    .card { border-radius: 12px; }
+</style>
+
 {% endblock %}
