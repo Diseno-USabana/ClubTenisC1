@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Detalle del Informe{% endblock %}
+
+{% block content %}
+<h1>Detalle del Informe</h1>
+<ul class="list-group">
+    <li class="list-group-item"><strong>ID:</strong> {{ informe.id }}</li>
+    <li class="list-group-item"><strong>Usuario:</strong> {{ informe.usuario }}</li>
+    <li class="list-group-item"><strong>Mes/Año:</strong> {{ informe.get_mes_display }}/{{ informe.anio }}</li>
+    <li class="list-group-item"><strong>Clases:</strong> {{ informe.clases }}</li>
+    <li class="list-group-item"><strong>Clases Asistidas:</strong> {{ informe.clases_asistidas }}</li>
+    <li class="list-group-item"><strong>Torneos Asistidos:</strong> {{ informe.torneos_asistidos }}</li>
+    <!-- Puedes mostrar detalles de los torneos (asistencia_torneo1, etc.) aquí -->
+</ul>
+<a href="{% url 'informes:list' %}" class="btn btn-secondary mt-3">Volver</a>
+{% endblock %}

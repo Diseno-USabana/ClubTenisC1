@@ -3,7 +3,7 @@ from django.db import models
 from usuarios.models import Usuario
 
 from django.db import models
-from usuarios.models import Usuario  # Asegúrate de tener la importación correcta
+from usuarios.models import Usuario  
 
 class Pago(models.Model):
     OPCIONES_CONCEPTO = (

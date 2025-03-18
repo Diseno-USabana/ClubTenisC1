@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Listado de Pagos{% endblock %}
+
+{% block content %}
+<h1>Listado de Pagos</h1>
+<a href="{% url 'pagos:create' %}" class="btn btn-primary mb-3">Nuevo Pago</a>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Concepto</th>
+            <th>Fecha</th>
+            <th>Monto</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pago in pagos %}
+        <tr>
+            <td>{{ pago.id }}</td>
+            <td>{{ pago.usuario }}</td>
+            <td>{{ pago.concepto }}</td>
+            <td>{{ pago.fecha }}</td>
+            <td>${{ pago.monto }}</td>
+            <td>
+                <a href="{% url 'pagos:detail' pago.id %}" class="btn btn-info btn-sm">Ver</a>
+                <a href="{% url 'pagos:update' pago.id %}" class="btn btn-warning btn-sm">Editar</a>
+                <a href="{% url 'pagos:delete' pago.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

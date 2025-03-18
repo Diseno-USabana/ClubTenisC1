@@ -1,27 +1,39 @@
-# app/views.py
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import Informe, Usuario
-from .services import generar_informes_para_matriculados
+# informes/views.py
+from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from .models import Informe
 
-def informes_view(request):
-    if request.method == "POST":
-        anio = request.POST.get("anio")
-        mes = request.POST.get("mes")
-        if not (anio and mes and anio.isdigit() and mes.isdigit()):
-            messages.error(request, "Año y mes deben ser números.")
-            return redirect("informes")
-        mes_int = int(mes)
-        if not (1 <= mes_int <= 12):
-            messages.error(request, "Mes debe estar entre 1 y 12.")
-            return redirect("informes")
-        
-        # Generar o actualizar los informes para usuarios matriculados
-        generar_informes_para_matriculados(mes, anio)
-        messages.success(request, f"Informes generados para {mes_int:02d}/{anio}.")
-        return redirect("informes")
-    
-    # En GET, mostramos el formulario y la lista de informes filtrados (si se reciben parámetros)
-    informes = Informe.objects.all().order_by("-anio", "-mes")
-    # Opcional: podrías filtrar por usuario si recibes un parámetro en la URL
-    return render(request, "informes.html", {"informes": informes})
+class InformeListView(ListView):
+    model = Informe
+    template_name = 'informes/informe_list.html'
+    context_object_name = 'informes'
+
+class InformeDetailView(DetailView):
+    model = Informe
+    template_name = 'informes/informe_detail.html'
+    context_object_name = 'informe'
+
+class InformeCreateView(CreateView):
+    model = Informe
+    fields = [
+        'usuario', 'anio', 'mes', 
+        'clases', 'clases_asistidas', 'torneos_asistidos',
+        'asistencia_torneo1', 'asistencia_torneo2', 'asistencia_torneo3'
+    ]
+    template_name = 'informes/informe_form.html'
+    success_url = reverse_lazy('informes:list')
+
+class InformeUpdateView(UpdateView):
+    model = Informe
+    fields = [
+        'usuario', 'anio', 'mes', 
+        'clases', 'clases_asistidas', 'torneos_asistidos',
+        'asistencia_torneo1', 'asistencia_torneo2', 'asistencia_torneo3'
+    ]
+    template_name = 'informes/informe_form.html'
+    success_url = reverse_lazy('informes:list')
+
+class InformeDeleteView(DeleteView):
+    model = Informe
+    template_name = 'informes/informe_confirm_delete.html'
+    success_url = reverse_lazy('informes:list')
