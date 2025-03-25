@@ -25,20 +25,29 @@ document.addEventListener("DOMContentLoaded", function () {
                 var currentYear = new Date().getFullYear();
                 var age = currentYear - birthYear;
                 console.log("Edad calculada:", age);
-                if (age >= 22) {
+                var nivelField = nivelContainer.querySelector('select[name="nivel"]');
+                if (age > 21) {
                     nivelContainer.style.display = "block";
+                    // Agregar atributo required al campo nivel
+                    if (nivelField) {
+                        nivelField.setAttribute("required", "required");
+                    }
                     console.log("Mostrando nivel-container");
                 } else {
                     nivelContainer.style.display = "none";
-                    console.log("Ocultando nivel-container");
-                    var nivelField = nivelContainer.querySelector('select[name="nivel"]');
+                    // Quitar atributo required y reiniciar el campo
                     if (nivelField) {
+                        nivelField.removeAttribute("required");
                         nivelField.selectedIndex = 0;
-                        console.log("Reiniciado nivel field");
                     }
+                    console.log("Ocultando nivel-container");
                 }
             } else {
                 nivelContainer.style.display = "none";
+                var nivelField = nivelContainer.querySelector('select[name="nivel"]');
+                if (nivelField) {
+                    nivelField.removeAttribute("required");
+                }
                 console.log("Sin valor en fecha_nacimiento, ocultando nivel-container");
             }
         }
@@ -120,8 +129,8 @@ document.addEventListener("DOMContentLoaded", function () {
             var currentYear = new Date().getFullYear();
             var age = currentYear - birthYear;
             console.log("Edad en submit:", age);
-            // Si es adulto (22 o más), el campo "nivel" es obligatorio
-            if (age >= 22) {
+            // Si es adulto (mayor a 21), el campo "nivel" es obligatorio
+            if (age > 21) {
                 if (!nivel || !nivel.value) {
                     e.preventDefault();
                     alert("Debe seleccionar su nivel de juego para adultos.");

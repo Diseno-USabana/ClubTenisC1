@@ -21,10 +21,14 @@
             {# Para creación, mostrar el dropdown de rol; en edición, se muestra (puede ser de solo lectura) #}
             {% if not usuario %}
             <div id="role-selection" class="mb-3">
-                <label for="id_rol">Rol:</label>
-                {{ form.rol }}
-                {{ form.rol.errors }}
-            </div>
+              <label for="id_rol">Rol:</label>
+              <select name="rol" id="id_rol">
+                  <option value="admin" {% if form.rol.value == "admin" or not form.rol.value %}selected{% endif %}>Admin</option>
+                  <option value="entrenador" {% if form.rol.value == "entrenador" %}selected{% endif %}>Entrenador</option>
+                  <option value="miembro" {% if form.rol.value == "miembro" %}selected{% endif %}>Miembro</option>
+              </select>
+              {{ form.rol.errors }}
+            </div>          
             {% else %}
                 {{ form.rol }}
             {% endif %}

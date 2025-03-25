@@ -2,7 +2,6 @@ from django import forms
 from .models import Usuario
 
 class UsuarioForm(forms.ModelForm):
-    # Campo extra para el nivel, que no está en el modelo
     nivel = forms.ChoiceField(
         choices=[
             ("basico", "Basico"),
@@ -35,8 +34,34 @@ class UsuarioForm(forms.ModelForm):
             'password': forms.PasswordInput(),
         }
     
+    def __init__(self, *args, **kwargs):
+        self.modo = kwargs.pop('modo', None)  # "register" o "create"
+        self.current_user = kwargs.pop('current_user', None)
+        super().__init__(*args, **kwargs)
+        if self.modo == "register":
+            self.fields["password_confirm"] = forms.CharField(
+                widget=forms.PasswordInput(),
+                label="Confirmar contraseña",
+                required=True
+            )
+            # Ocultar campos y desactivar el requisito en la validación de campo
+            self.fields["rol"].initial = "miembro"
+            self.fields["estado"].initial = "activo"
+            self.fields["rol"].widget = forms.HiddenInput()
+            self.fields["estado"].widget = forms.HiddenInput()
+            self.fields["rol"].required = False
+            self.fields["estado"].required = False
+
+    
     def clean(self):
         cleaned_data = super().clean()
+        
+        # Si estamos en modo register, establecer valores por defecto para rol y estado
+        if self.modo == "register":
+            cleaned_data["rol"] = "miembro"
+            cleaned_data["estado"] = "activo"
+            print("DEBUG: Entro a modo register")
+
         rol = cleaned_data.get("rol")
         nombre = cleaned_data.get("nombre")
         apellidos = cleaned_data.get("apellidos")
@@ -57,6 +82,11 @@ class UsuarioForm(forms.ModelForm):
         if not estado:
             self.add_error("estado", "El estado es obligatorio.")
 
+        if self.modo == "register":
+            password_confirm = cleaned_data.get("password_confirm")
+            if password and password_confirm and password != password_confirm:
+                self.add_error("password_confirm", "Las contraseñas no coinciden.")
+
         if rol == 'entrenador':
             if not cleaned_data.get("telefono"):
                 self.add_error("telefono", "El teléfono es obligatorio para entrenadores.")
@@ -73,14 +103,12 @@ class UsuarioForm(forms.ModelForm):
                 self.add_error("num_documento", "El número de documento es obligatorio para miembros.")
             if not cleaned_data.get("fecha_nacimiento"):
                 self.add_error("fecha_nacimiento", "La fecha de nacimiento es obligatoria para miembros.")
-            # id_categoria se asigna automáticamente según la edad en la vista, así que se ignora aquí.
-            # matricula es un campo booleano y se puede dejar como False por defecto.
-            # Agregar validación del nivel:
+            # Validar el campo 'nivel' si el miembro es adulto (edad >= 22)
             const_fecha = cleaned_data.get("fecha_nacimiento")
             if const_fecha:
                 from datetime import date
                 today = date.today()
-                age = today.year - const_fecha.year  # se usa solo el año
+                age = today.year - const_fecha.year  # Se usa solo el año
                 if age >= 22 and not cleaned_data.get("nivel"):
                     self.add_error("nivel", "Debes seleccionar el nivel de juego para adultos.")
         return cleaned_data

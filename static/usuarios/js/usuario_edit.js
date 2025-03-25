@@ -7,6 +7,11 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
+    // Si no hay valor, forzamos un valor por defecto (por ejemplo, "admin")
+    if (!rolSelect.value) {
+        rolSelect.value = "admin";
+    }
+
     const adminFields = document.getElementById("admin-fields");
     const entrenadorFields = document.getElementById("entrenador-fields");
     const miembroFields = document.getElementById("miembro-fields");
@@ -17,6 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedRole = rolSelect.value;
         console.log("Rol seleccionado:", selectedRole);
 
+        // Ocultar todos los bloques
         if (adminFields) adminFields.style.display = "none";
         if (entrenadorFields) entrenadorFields.style.display = "none";
         if (miembroFields) miembroFields.style.display = "none";
@@ -38,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const currentYear = new Date().getFullYear();
                     const age = currentYear - birthYear;
                     console.log("Edad calculada:", age);
-                    if (age >= 22 && nivelField) {
+                    if (age > 21 && nivelField) {
                         nivelField.style.display = "block";
                         console.log("Mostrando campo de nivel");
                     } else if (nivelField) {
@@ -66,7 +72,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const currentYear = new Date().getFullYear();
                     const age = currentYear - birthYear;
                     console.log("Cambio en fecha. Edad calculada:", age);
-                    if (age >= 22 && nivelField) {
+                    if (age > 21 && nivelField) {
                         nivelField.style.display = "block";
                         console.log("Mostrando campo de nivel (por fecha)");
                     } else if (nivelField) {
