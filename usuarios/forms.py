@@ -1,8 +1,18 @@
-# usuarios/forms.py
 from django import forms
 from .models import Usuario
 
 class UsuarioForm(forms.ModelForm):
+    # Campo extra para el nivel, que no está en el modelo
+    nivel = forms.ChoiceField(
+        choices=[
+            ("basico", "Basico"),
+            ("intermedio", "Intermedio"),
+            ("avanzado", "Avanzado")
+        ],
+        required=False,
+        label="Nivel de juego"
+    )
+    
     class Meta:
         model = Usuario
         fields = [
@@ -18,6 +28,7 @@ class UsuarioForm(forms.ModelForm):
             'id_categoria',
             'estado',
             'matricula',
+            'nivel',  # campo extra
         ]
         widgets = {
             'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
@@ -27,12 +38,10 @@ class UsuarioForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         rol = cleaned_data.get("rol")
-        
-        # Los campos comunes para todos los roles:
-        correo = cleaned_data.get("correo")
-        password = cleaned_data.get("password")
         nombre = cleaned_data.get("nombre")
         apellidos = cleaned_data.get("apellidos")
+        correo = cleaned_data.get("correo")
+        password = cleaned_data.get("password")
         estado = cleaned_data.get("estado")
         
         if not rol:
@@ -48,12 +57,7 @@ class UsuarioForm(forms.ModelForm):
         if not estado:
             self.add_error("estado", "El estado es obligatorio.")
 
-        # Validar por rol:
-        if rol == 'admin':
-            # Solo se requieren los campos básicos (ya validados arriba)
-            pass
-        elif rol == 'entrenador':
-            # Se requieren: telefono, tipo_documento, num_documento
+        if rol == 'entrenador':
             if not cleaned_data.get("telefono"):
                 self.add_error("telefono", "El teléfono es obligatorio para entrenadores.")
             if not cleaned_data.get("tipo_documento"):
@@ -61,7 +65,6 @@ class UsuarioForm(forms.ModelForm):
             if not cleaned_data.get("num_documento"):
                 self.add_error("num_documento", "El número de documento es obligatorio para entrenadores.")
         elif rol == 'miembro':
-            # Se requieren: telefono, tipo_documento, num_documento, fecha_nacimiento, id_categoria, matricula
             if not cleaned_data.get("telefono"):
                 self.add_error("telefono", "El teléfono es obligatorio para miembros.")
             if not cleaned_data.get("tipo_documento"):
@@ -71,8 +74,17 @@ class UsuarioForm(forms.ModelForm):
             if not cleaned_data.get("fecha_nacimiento"):
                 self.add_error("fecha_nacimiento", "La fecha de nacimiento es obligatoria para miembros.")
             # id_categoria se asigna automáticamente según la edad en la vista, así que se ignora aquí.
-            # matricula es un campo booleano; se puede dejar como False por defecto.
+            # matricula es un campo booleano y se puede dejar como False por defecto.
+            # Agregar validación del nivel:
+            const_fecha = cleaned_data.get("fecha_nacimiento")
+            if const_fecha:
+                from datetime import date
+                today = date.today()
+                age = today.year - const_fecha.year  # se usa solo el año
+                if age >= 22 and not cleaned_data.get("nivel"):
+                    self.add_error("nivel", "Debes seleccionar el nivel de juego para adultos.")
         return cleaned_data
+
 
 
 class RegistrationForm(forms.ModelForm):

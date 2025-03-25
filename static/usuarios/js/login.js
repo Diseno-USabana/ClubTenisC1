@@ -1,51 +1,64 @@
-// proyecto/static/usuarios/js/login.js
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("login.js loaded and executing.");
+
     var form = document.getElementById("authForm");
     if (!form) return;
 
-    // Determinar si estamos en modo registro (asumimos que el h2 contiene "registro")
+    // Determinar si estamos en modo registro (buscando texto en el h2)
     var headingText = document.querySelector("h2").innerText.toLowerCase();
-    var isRegistration = headingText.includes("registro");
+    var isRegistration = headingText.includes("únete") || headingText.includes("registro");
+    console.log("Modo registro:", isRegistration);
 
-    // Si es registro, obtenemos el input de fecha de nacimiento y el contenedor del nivel
+    // Obtener el input de fecha de nacimiento y el contenedor del nivel de juego
     var fechaNacimiento = form.querySelector('input[name="fecha_nacimiento"]');
     var nivelContainer = document.getElementById("nivel-container");
 
-    // Función para mostrar/ocultar el campo "Nivel" según la edad (calculada solo por año)
+    // Función para mostrar/ocultar el bloque de "Nivel" según la edad (calculada solo por año)
     function toggleNivelField() {
+        console.log("Ejecutando toggleNivelField...");
         if (fechaNacimiento && nivelContainer) {
             var fechaVal = fechaNacimiento.value; // Se espera formato "YYYY-MM-DD"
+            console.log("Valor de fecha_nacimiento:", fechaVal);
             if (fechaVal) {
                 var parts = fechaVal.split("-");
                 var birthYear = parseInt(parts[0], 10);
                 var currentYear = new Date().getFullYear();
-                var age = currentYear - birthYear; // Solo se usa la diferencia de años
+                var age = currentYear - birthYear;
+                console.log("Edad calculada:", age);
                 if (age >= 22) {
                     nivelContainer.style.display = "block";
+                    console.log("Mostrando nivel-container");
                 } else {
                     nivelContainer.style.display = "none";
-                    // Opcional: limpiar la selección del nivel si se oculta
+                    console.log("Ocultando nivel-container");
                     var nivelField = nivelContainer.querySelector('select[name="nivel"]');
                     if (nivelField) {
                         nivelField.selectedIndex = 0;
+                        console.log("Reiniciado nivel field");
                     }
                 }
             } else {
                 nivelContainer.style.display = "none";
+                console.log("Sin valor en fecha_nacimiento, ocultando nivel-container");
             }
         }
     }
     
     if (isRegistration && fechaNacimiento && nivelContainer) {
-        // Ejecuta al cargar y cuando se modifique el input de fecha
+        // Ejecutar al cargar la página y cuando se modifique la fecha
         toggleNivelField();
-        fechaNacimiento.addEventListener("change", toggleNivelField);
-        fechaNacimiento.addEventListener("input", toggleNivelField);
+        fechaNacimiento.addEventListener("change", function () {
+            console.log("Evento 'change' en fecha_nacimiento");
+            toggleNivelField();
+        });
+        fechaNacimiento.addEventListener("input", function () {
+            console.log("Evento 'input' en fecha_nacimiento");
+            toggleNivelField();
+        });
     }
 
-    form.addEventListener("submit", function(e) {
+    form.addEventListener("submit", function (e) {
         if (isRegistration) {
-            // Obtener campos del formulario
             var nombre = form.querySelector('input[name="nombre"]');
             var apellidos = form.querySelector('input[name="apellidos"]');
             var telefono = form.querySelector('input[name="telefono"]');
@@ -54,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
             var passwordConfirm = form.querySelector('input[name="password_confirm"]');
             var tipoDocumento = form.querySelector('[name="tipo_documento"]');
             var numDocumento = form.querySelector('input[name="num_documento"]');
-            // fechaNacimiento ya se obtuvo antes
+            // fechaNacimiento ya está definida
             var nivel = form.querySelector('select[name="nivel"]'); // Puede existir o no
 
             // Verificar que los campos obligatorios estén llenos
@@ -106,6 +119,7 @@ document.addEventListener("DOMContentLoaded", function() {
             var birthYear = parseInt(fechaNacimiento.value.split("-")[0], 10);
             var currentYear = new Date().getFullYear();
             var age = currentYear - birthYear;
+            console.log("Edad en submit:", age);
             // Si es adulto (22 o más), el campo "nivel" es obligatorio
             if (age >= 22) {
                 if (!nivel || !nivel.value) {

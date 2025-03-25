@@ -101,59 +101,67 @@
                 </p>
             </div>
             
+            <!-- Bloque para miembros -->
             <div id="miembro-fields" style="display: none;">
-                <p>
-                    {{ form.nombre.label_tag }}<br>
-                    {{ form.nombre }}
-                    {{ form.nombre.errors }}
-                </p>
-                <p>
-                    {{ form.apellidos.label_tag }}<br>
-                    {{ form.apellidos }}
-                    {{ form.apellidos.errors }}
-                </p>
-                <p>
-                    {{ form.correo.label_tag }}<br>
-                    {{ form.correo }}
-                    {{ form.correo.errors }}
-                </p>
-                <p>
-                    {{ form.telefono.label_tag }}<br>
-                    {{ form.telefono }}
-                    {{ form.telefono.errors }}
-                </p>
-                <p>
-                    {{ form.password.label_tag }}<br>
-                    {{ form.password }}
-                    {{ form.password.errors }}
-                </p>
-                <p>
-                    {{ form.tipo_documento.label_tag }}<br>
-                    {{ form.tipo_documento }}
-                    {{ form.tipo_documento.errors }}
-                </p>
-                <p>
-                    {{ form.num_documento.label_tag }}<br>
-                    {{ form.num_documento }}
-                    {{ form.num_documento.errors }}
-                </p>
-                <p>
-                    {{ form.fecha_nacimiento.label_tag }}<br>
-                    {{ form.fecha_nacimiento }}
-                    {{ form.fecha_nacimiento.errors }}
-                </p>
-                {# id_categoria se asigna automáticamente, no se muestra #}
-                <p>
-                    {{ form.matricula.label_tag }}<br>
-                    {{ form.matricula }}
-                    {{ form.matricula.errors }}
-                </p>
-                <p>
-                    {{ form.estado.label_tag }}<br>
-                    {{ form.estado }}
-                    {{ form.estado.errors }}
-                </p>
+              <p>
+                  {{ form.nombre.label_tag }}<br>
+                  {{ form.nombre }}
+                  {{ form.nombre.errors }}
+              </p>
+              <p>
+                  {{ form.apellidos.label_tag }}<br>
+                  {{ form.apellidos }}
+                  {{ form.apellidos.errors }}
+              </p>
+              <p>
+                  {{ form.correo.label_tag }}<br>
+                  {{ form.correo }}
+                  {{ form.correo.errors }}
+              </p>
+              <p>
+                  {{ form.telefono.label_tag }}<br>
+                  {{ form.telefono }}
+                  {{ form.telefono.errors }}
+              </p>
+              <p>
+                  {{ form.password.label_tag }}<br>
+                  {{ form.password }}
+                  {{ form.password.errors }}
+              </p>
+              <p>
+                  {{ form.tipo_documento.label_tag }}<br>
+                  {{ form.tipo_documento }}
+                  {{ form.tipo_documento.errors }}
+              </p>
+              <p>
+                  {{ form.num_documento.label_tag }}<br>
+                  {{ form.num_documento }}
+                  {{ form.num_documento.errors }}
+              </p>
+              <p>
+                  {{ form.fecha_nacimiento.label_tag }}<br>
+                  {{ form.fecha_nacimiento }}
+                  {{ form.fecha_nacimiento.errors }}
+              </p>
+              {# id_categoria se asigna automáticamente #}
+              <p>
+                  {{ form.matricula.label_tag }}<br>
+                  {{ form.matricula }}
+                  {{ form.matricula.errors }}
+              </p>
+              <p>
+                  {{ form.estado.label_tag }}<br>
+                  {{ form.estado }}
+                  {{ form.estado.errors }}
+              </p>
+              <!-- Bloque para el nivel de juego, inicialmente oculto -->
+              <p id="nivel-field" style="display: none;">
+                  {{ form.nivel.label_tag }}<br>
+                  {{ form.nivel }}
+                  {{ form.nivel.errors }}
+              </p>
             </div>
+
             
             <div class="text-center mt-3">
                 <button type="submit" class="btn btn-brown">
