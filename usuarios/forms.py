@@ -87,7 +87,11 @@ class UsuarioForm(forms.ModelForm):
             if password and password_confirm and password != password_confirm:
                 self.add_error("password_confirm", "Las contraseñas no coinciden.")
 
-        if rol == 'entrenador':
+        # Validaciones específicas por rol
+        if rol == 'admin':
+            # Solo se requiere nombre, apellidos, correo, password y estado
+            pass  # ya fueron validados arriba
+        elif rol == 'entrenador':
             if not cleaned_data.get("telefono"):
                 self.add_error("telefono", "El teléfono es obligatorio para entrenadores.")
             if not cleaned_data.get("tipo_documento"):
@@ -103,14 +107,16 @@ class UsuarioForm(forms.ModelForm):
                 self.add_error("num_documento", "El número de documento es obligatorio para miembros.")
             if not cleaned_data.get("fecha_nacimiento"):
                 self.add_error("fecha_nacimiento", "La fecha de nacimiento es obligatoria para miembros.")
-            # Validar el campo 'nivel' si el miembro es adulto (edad >= 22)
-            const_fecha = cleaned_data.get("fecha_nacimiento")
-            if const_fecha:
+            else:
+                # Validar el campo 'nivel' si el miembro es adulto (edad >= 22)
                 from datetime import date
                 today = date.today()
-                age = today.year - const_fecha.year  # Se usa solo el año
+                age = today.year - cleaned_data["fecha_nacimiento"].year
                 if age >= 22 and not cleaned_data.get("nivel"):
                     self.add_error("nivel", "Debes seleccionar el nivel de juego para adultos.")
+        else:
+            self.add_error("rol", "Rol no válido o no reconocido.")
+
         return cleaned_data
 
 

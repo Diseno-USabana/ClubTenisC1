@@ -20,42 +20,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function updateFieldsVisibility() {
         const selectedRole = rolSelect.value;
-        console.log("Rol seleccionado:", selectedRole);
-
-        // Ocultar todos los bloques
-        if (adminFields) adminFields.style.display = "none";
-        if (entrenadorFields) entrenadorFields.style.display = "none";
-        if (miembroFields) miembroFields.style.display = "none";
-        if (nivelField) nivelField.style.display = "none"; // oculto por defecto
-
-        if (selectedRole === "admin" && adminFields) {
-            adminFields.style.display = "block";
-            console.log("Mostrando campos para admin");
-        } else if (selectedRole === "entrenador" && entrenadorFields) {
-            entrenadorFields.style.display = "block";
-            console.log("Mostrando campos para entrenador");
-        } else if (selectedRole === "miembro" && miembroFields) {
-            miembroFields.style.display = "block";
-            console.log("Mostrando campos para miembro");
-            if (fechaNacimiento && fechaNacimiento.value) {
-                const parts = fechaNacimiento.value.split("-");
-                if (parts.length > 0) {
-                    const birthYear = parseInt(parts[0], 10);
-                    const currentYear = new Date().getFullYear();
-                    const age = currentYear - birthYear;
-                    console.log("Edad calculada:", age);
-                    if (age > 21 && nivelField) {
-                        nivelField.style.display = "block";
-                        console.log("Mostrando campo de nivel");
-                    } else if (nivelField) {
-                        nivelField.style.display = "none";
-                        console.log("Ocultando campo de nivel");
-                    }
-                }
+    
+        // Ocultar todos los campos controlados por rol
+        document.querySelectorAll(".campo").forEach((field) => {
+            field.style.display = "none";
+        });
+    
+        // Mostrar solo los campos correspondientes al rol seleccionado
+        document.querySelectorAll(".rol-" + selectedRole).forEach((field) => {
+            field.style.display = "block";
+        });
+    
+        // Control específico para el campo 'nivel'
+        if (selectedRole === "miembro" && fechaNacimiento && fechaNacimiento.value) {
+            const birthYear = parseInt(fechaNacimiento.value.split("-")[0], 10);
+            const currentYear = new Date().getFullYear();
+            const age = currentYear - birthYear;
+            if (age > 21 && nivelField) {
+                nivelField.style.display = "block";
+            } else if (nivelField) {
+                nivelField.style.display = "none";
             }
         }
     }
-
+    
     updateFieldsVisibility();
 
     rolSelect.addEventListener("change", function () {
