@@ -35,22 +35,41 @@ class UsuarioForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
-        self.modo = kwargs.pop('modo', None)  # "register" o "create"
+        self.modo = kwargs.pop('modo', None)       # "register" o "create"
         self.current_user = kwargs.pop('current_user', None)
         super().__init__(*args, **kwargs)
+
+        # ——————————————————————————————————————————
+        # Paso 1: lógica original para register (si aplica)
         if self.modo == "register":
             self.fields["password_confirm"] = forms.CharField(
                 widget=forms.PasswordInput(),
                 label="Confirmar contraseña",
                 required=True
             )
-            # Ocultar campos y desactivar el requisito en la validación de campo
             self.fields["rol"].initial = "miembro"
             self.fields["estado"].initial = "activo"
             self.fields["rol"].widget = forms.HiddenInput()
             self.fields["estado"].widget = forms.HiddenInput()
             self.fields["rol"].required = False
             self.fields["estado"].required = False
+        # ——————————————————————————————————————————
+
+        # Paso 2: si es POST, determinar rol y eliminar campos irrelevantes
+        if self.data.get('rol'):
+            role = self.data.get('rol')
+            # Campos que siempre deben permanecer
+            allowed = ['rol', 'nombre', 'apellidos', 'correo', 'password', 'estado']
+            if role == 'entrenador':
+                allowed += ['telefono', 'tipo_documento', 'num_documento']
+            elif role == 'miembro':
+                allowed += ['telefono', 'tipo_documento', 'num_documento',
+                            'fecha_nacimiento', 'matricula', 'nivel']
+            # Remover del form todo lo que no esté en allowed
+            for field_name in list(self.fields.keys()):
+                if field_name not in allowed:
+                    self.fields.pop(field_name)
+
 
     
     def clean(self):

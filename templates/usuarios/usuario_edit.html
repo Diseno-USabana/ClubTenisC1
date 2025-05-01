@@ -14,7 +14,7 @@
     <form method="post" id="usuarioForm" novalidate>
       {% csrf_token %}
 
-      {# Selección de rol #}
+      {# Selección de rol (solo en creación) #}
       {% if not usuario %}
       <div class="mb-3">
         <label for="id_rol">Rol:</label>
@@ -29,7 +29,7 @@
         {{ form.rol }}
       {% endif %}
 
-      {# Campos individuales con data-roles #}
+      {# Campos individuales con visibilidad controlada por data-roles #}
       <div class="campo" id="field-nombre" data-roles="admin,entrenador,miembro">
         <p>{{ form.nombre.label_tag }}<br>{{ form.nombre }}{{ form.nombre.errors }}</p>
       </div>
