@@ -6,149 +6,94 @@
 <link rel="stylesheet" href="{% static 'usuarios/css/usuario_edit.css' %}">
 
 <div class="container mt-5">
-    <div class="card shadow-sm p-4 bg-light rounded">
-        <h1 class="text-center text-brown">
-            {% if usuario %}
-                ✏️ Editar Usuario
-            {% else %}
-                🆕 Crear Usuario
-            {% endif %}
-        </h1>
-        <hr>
-        <form method="post" id="usuarioForm" novalidate>
-            {% csrf_token %}
-            
-            {# Para creación, mostrar el dropdown de rol; en edición, se muestra (puede ser de solo lectura) #}
-            {% if not usuario %}
-            <div id="role-selection" class="mb-3">
-              <label for="id_rol">Rol:</label>
-              <select name="rol" id="id_rol">
-                  <option value="admin" {% if form.rol.value == "admin" or not form.rol.value %}selected{% endif %}>Admin</option>
-                  <option value="entrenador" {% if form.rol.value == "entrenador" %}selected{% endif %}>Entrenador</option>
-                  <option value="miembro" {% if form.rol.value == "miembro" %}selected{% endif %}>Miembro</option>
-              </select>
-              {{ form.rol.errors }}
-            </div>          
-            {% else %}
-                {{ form.rol }}
-            {% endif %}
-            
-        <!-- Campos comunes (aparecen para todos los roles) -->
-        <div class="campo rol-admin rol-entrenador rol-miembro">
-            <p>
-            {{ form.nombre.label_tag }}<br>
-            {{ form.nombre }}
-            {{ form.nombre.errors }}
-            </p>
-        </div>
-        
-        <div class="campo rol-admin rol-entrenador rol-miembro">
-            <p>
-            {{ form.apellidos.label_tag }}<br>
-            {{ form.apellidos }}
-            {{ form.apellidos.errors }}
-            </p>
-        </div>
-        
-        <div class="campo rol-admin rol-entrenador rol-miembro">
-            <p>
-            {{ form.correo.label_tag }}<br>
-            {{ form.correo }}
-            {{ form.correo.errors }}
-            </p>
-        </div>
-        
-        <div class="campo rol-admin rol-entrenador rol-miembro">
-            <p>
-            {{ form.password.label_tag }}<br>
-            {{ form.password }}
-            {{ form.password.errors }}
-            </p>
-        </div>
-        
-        <div class="campo rol-admin rol-entrenador rol-miembro">
-            <p>
-            {{ form.estado.label_tag }}<br>
-            {{ form.estado }}
-            {{ form.estado.errors }}
-            </p>
-        </div>
-        
-        <!-- Campos exclusivos de entrenador y miembro -->
-        <div class="campo rol-entrenador rol-miembro">
-            <p>
-            {{ form.telefono.label_tag }}<br>
-            {{ form.telefono }}
-            {{ form.telefono.errors }}
-            </p>
-        </div>
-        
-        <div class="campo rol-entrenador rol-miembro">
-            <p>
-            {{ form.tipo_documento.label_tag }}<br>
-            {{ form.tipo_documento }}
-            {{ form.tipo_documento.errors }}
-            </p>
-        </div>
-        
-        <div class="campo rol-entrenador rol-miembro">
-            <p>
-            {{ form.num_documento.label_tag }}<br>
-            {{ form.num_documento }}
-            {{ form.num_documento.errors }}
-            </p>
-        </div>
-        
-        <!-- Campos solo para miembros -->
-        <div class="campo rol-miembro">
-            <p>
-            {{ form.fecha_nacimiento.label_tag }}<br>
-            {{ form.fecha_nacimiento }}
-            {{ form.fecha_nacimiento.errors }}
-            </p>
-        </div>
-        
-        <div class="campo rol-miembro">
-            <p>
-            {{ form.matricula.label_tag }}<br>
-            {{ form.matricula }}
-            {{ form.matricula.errors }}
-            </p>
-        </div>
-        
-        <!-- Nivel solo para mayores de 21 (controlado con JS) -->
-        <div class="campo rol-miembro" id="nivel-field" style="display: none;">
-            <p>
-            {{ form.nivel.label_tag }}<br>
-            {{ form.nivel }}
-            {{ form.nivel.errors }}
-            </p>
-        </div>
-        
+  <div class="card shadow-sm p-4 bg-light rounded">
+    <h1 class="text-center text-brown">
+      {% if usuario %}✏️ Editar Usuario{% else %}🆕 Crear Usuario{% endif %}
+    </h1>
+    <hr>
+    <form method="post" id="usuarioForm" novalidate>
+      {% csrf_token %}
 
-            
-            <div class="text-center mt-3">
-                <button type="submit" class="btn btn-brown">
-                    {% if usuario %}💾 Guardar Cambios{% else %}Crear Usuario{% endif %}
-                </button>
-                {% if usuario %}
-                    <a href="{% url 'usuarios:detail' usuario.id %}" class="btn btn-secondary">❌ Cancelar</a>
-                {% else %}
-                    <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">❌ Cancelar</a>
-                {% endif %}
-            </div>
-        </form>
-    </div>
+      {# Selección de rol #}
+      {% if not usuario %}
+      <div class="mb-3">
+        <label for="id_rol">Rol:</label>
+        <select name="rol" id="id_rol">
+          <option value="admin" {% if form.rol.value == "admin" or not form.rol.value %}selected{% endif %}>Admin</option>
+          <option value="entrenador" {% if form.rol.value == "entrenador" %}selected{% endif %}>Entrenador</option>
+          <option value="miembro" {% if form.rol.value == "miembro" %}selected{% endif %}>Miembro</option>
+        </select>
+        {{ form.rol.errors }}
+      </div>
+      {% else %}
+        {{ form.rol }}
+      {% endif %}
+
+      {# Campos individuales con data-roles #}
+      <div class="campo" id="field-nombre" data-roles="admin,entrenador,miembro">
+        <p>{{ form.nombre.label_tag }}<br>{{ form.nombre }}{{ form.nombre.errors }}</p>
+      </div>
+
+      <div class="campo" id="field-apellidos" data-roles="admin,entrenador,miembro">
+        <p>{{ form.apellidos.label_tag }}<br>{{ form.apellidos }}{{ form.apellidos.errors }}</p>
+      </div>
+
+      <div class="campo" id="field-correo" data-roles="admin,entrenador,miembro">
+        <p>{{ form.correo.label_tag }}<br>{{ form.correo }}{{ form.correo.errors }}</p>
+      </div>
+
+      <div class="campo" id="field-password" data-roles="admin,entrenador,miembro">
+        <p>{{ form.password.label_tag }}<br>{{ form.password }}{{ form.password.errors }}</p>
+      </div>
+
+      <div class="campo" id="field-estado" data-roles="admin,entrenador,miembro">
+        <p>{{ form.estado.label_tag }}<br>{{ form.estado }}{{ form.estado.errors }}</p>
+      </div>
+
+      <div class="campo" id="field-telefono" data-roles="entrenador,miembro">
+        <p>{{ form.telefono.label_tag }}<br>{{ form.telefono }}{{ form.telefono.errors }}</p>
+      </div>
+
+      <div class="campo" id="field-tipo_documento" data-roles="entrenador,miembro">
+        <p>{{ form.tipo_documento.label_tag }}<br>{{ form.tipo_documento }}{{ form.tipo_documento.errors }}</p>
+      </div>
+
+      <div class="campo" id="field-num_documento" data-roles="entrenador,miembro">
+        <p>{{ form.num_documento.label_tag }}<br>{{ form.num_documento }}{{ form.num_documento.errors }}</p>
+      </div>
+
+      <div class="campo" id="field-fecha_nacimiento" data-roles="miembro">
+        <p>{{ form.fecha_nacimiento.label_tag }}<br>{{ form.fecha_nacimiento }}{{ form.fecha_nacimiento.errors }}</p>
+      </div>
+
+      <div class="campo" id="field-matricula" data-roles="miembro">
+        <p>{{ form.matricula.label_tag }}<br>{{ form.matricula }}{{ form.matricula.errors }}</p>
+      </div>
+
+      <div class="campo" id="field-nivel" data-roles="miembro" style="display: none;">
+        <p>{{ form.nivel.label_tag }}<br>{{ form.nivel }}{{ form.nivel.errors }}</p>
+      </div>
+
+      <div class="text-center mt-3">
+        <button type="submit" class="btn btn-brown">
+          {% if usuario %}💾 Guardar Cambios{% else %}Crear Usuario{% endif %}
+        </button>
+        {% if usuario %}
+          <a href="{% url 'usuarios:detail' usuario.id %}" class="btn btn-secondary">❌ Cancelar</a>
+        {% else %}
+          <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">❌ Cancelar</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
 </div>
 
 <script src="{% static 'usuarios/js/usuario_edit.js' %}"></script>
-
 <style>
-    .text-brown { color: #6F4E37; }
-    .bg-light { background-color: #f8f9fa; }
-    .btn-brown { background-color: #6F4E37; color: white; border: 2px solid #5A3C2E; padding: 10px 20px; }
-    .btn-brown:hover { background-color: #5A3C2E; }
-    .card { border-radius: 12px; }
+  .text-brown { color: #6F4E37; }
+  .bg-light { background-color: #f8f9fa; }
+  .btn-brown { background-color: #6F4E37; color: white; border: 2px solid #5A3C2E; padding: 10px 20px; }
+  .btn-brown:hover { background-color: #5A3C2E; }
+  .card { border-radius: 12px; }
 </style>
-
 {% endblock %}
