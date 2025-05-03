@@ -40,12 +40,12 @@
     {% endif %}
 </div>
 
-<div class="fixed-bottom bg-brown p-3 text-center">
+<div class="bg-brown p-3 text-center mt-4">
   <p class="text-white mb-1">¡Reserva ya! Reserva tu entrenamiento para poder cumplir con los cupos limitados de cada entrenamiento</p>
     
   {% if current_role == "admin" or current_role == "entrenador" %}
-    <a href="{% url 'eventos:create' %}?tipo=entrenamiento" class="btn btn-brown btn-bordered">Crear Nuevo Entrenamiento</a>
-{% endif %}
+        <a href="{% url 'eventos:create' %}?tipo=entrenamiento" class="btn btn-brown btn-bordered">Crear Nuevo Entrenamiento</a>
+  {% endif %}
 
 <style>
     .bg-brown { background-color: #6F4E37; }

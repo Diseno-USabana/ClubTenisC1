@@ -1,4 +1,5 @@
 {% extends '_base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-5">
@@ -44,4 +45,5 @@
     .btn-danger { padding: 10px 20px; }
     .card { border-radius: 12px; }
 </style>
+<script src="{% static 'eventos/js/form_validations.js' %}"></script>
 {% endblock %}

@@ -29,12 +29,14 @@
     {% endif %}
 </div>
 
-<div class="fixed-bottom bg-brown p-3 text-center">
+<div class="bg-brown p-3 text-center mt-4">
     <p class="text-white mb-1">¡Inscríbete ya! Asegura tu lugar en nuestros torneos antes de que se llenen los cupos.</p>
     {# Opción para crear un nuevo torneo (solo admin o entrenador) #}
     {% if can_create %}
       
-      <a href="{% url 'eventos:create' %}?tipo=torneo" class="btn btn-brown btn-bordered">Crear Nuevo Entrenamiento</a>
+    {% if can_create %}
+        <a href="{% url 'eventos:create' %}?tipo=torneo" class="btn btn-brown btn-bordered">Crear Nuevo Torneo</a>
+    {% endif %}
       
     {% endif %}
 </div>
