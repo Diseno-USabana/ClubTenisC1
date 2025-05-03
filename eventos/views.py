@@ -9,6 +9,7 @@ from django.utils import timezone
 from datetime import date, datetime, timedelta, time
 from dateutil.relativedelta import relativedelta
 from utils.role_mixins import AdminEntrenadorRequiredMixin, UsuarioSessionMixin
+from django.db import models
 
 # ======================================
 # Lista de Entrenamientos
@@ -22,13 +23,17 @@ class EntrenamientoListView(UsuarioSessionMixin, ListView):
         current_user = self.get_current_user(self.request)
         qs = super().get_queryset()
         filtered_qs = filter_upcoming_events(qs, 'entrenamiento')
-        
+
         if current_user and current_user.rol == 'miembro':
+            # Solo eventos que coincidan con su categoría
             filtered_qs = filtered_qs.filter(categoria=current_user.id_categoria)
-            inscritos_qs = AsistenciaEntrenamiento.objects.filter(usuario=current_user, entrenamiento__in=filtered_qs)
+            # Anotar cantidad de asistentes y filtrar por capacidad
+            filtered_qs = filtered_qs.annotate(num_asistentes=models.Count('asistencias_entrenamiento')).filter(num_asistentes__lt=models.F('capacidad'))
+            # Incluir también los eventos en los que ya está inscrito, incluso si están llenos
+            inscritos_qs = AsistenciaEntrenamiento.objects.filter(usuario=current_user, entrenamiento__in=qs)
             inscritos_ids = inscritos_qs.values_list('entrenamiento_id', flat=True)
             filtered_qs = filtered_qs | Evento.objects.filter(id__in=inscritos_ids)
-        
+
         return filtered_qs.distinct()
 
     def get_context_data(self, **kwargs):
@@ -87,59 +92,24 @@ class EventoCreateView(AdminEntrenadorRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        tipo = self.request.GET.get('tipo', 'entrenamiento')
+        tipo = self.request.GET.get('tipo', form.instance.tipo)
+        form.instance.tipo = tipo
         if tipo == 'torneo':
-            form.instance.tipo = 'torneo'
             form.instance.entrenador = None
             form.instance.categoria = None
             form.instance.capacidad = 999
         else:
-            form.instance.tipo = 'entrenamiento'
             form.instance.costo = None
-            # No se asigna automáticamente el entrenador; se espera que venga del formulario
 
-        event_date = form.cleaned_data.get('fecha')
-        event_id = self.object.id if self.object else None
-        today = date.today()
-        if tipo == 'entrenamiento':
-            if event_date < today:
-                form.add_error('fecha', 'No se pueden crear entrenamientos en el pasado.')
-                return self.form_invalid(form)
-            if event_date > today + relativedelta(months=+6):
-                form.add_error('fecha', 'No se pueden crear entrenamientos con más de 6 meses de antelación.')
-                return self.form_invalid(form)
-        else:  # torneo
-            if event_date < today - timedelta(days=7):
-                form.add_error('fecha', 'No se pueden crear torneos de más de una semana atrás.')
-                return self.form_invalid(form)
-            if event_date > today + relativedelta(years=+1):
-                form.add_error('fecha', 'No se pueden crear torneos con más de un año de antelación.')
-                return self.form_invalid(form)
-
-        
-        # Calcular el intervalo del nuevo evento
-        new_start = datetime.combine(form.cleaned_data['fecha'], form.cleaned_data['hora'])
-        new_end = new_start + timedelta(minutes=form.cleaned_data['duracion'])
-       
-        if not check_event_time_restrictions(form, new_start, new_end, tipo, event_date):
-            return self.form_invalid(form)
-            
-        # Solapamiento con otros eventos (se filtra por fecha)
-        if not check_event_overlap(form, new_start, new_end, tipo, event_id):
-            return self.form_invalid(form)
-
-        # Asignar nombre predeterminado (solo en creación) para entrenamientos
+        # Generar nombre predeterminado solo si no hay
         if tipo == 'entrenamiento' and not form.instance.nombre:
-            # Se asume que el campo categoría ya fue seleccionado en el formulario
             cat_name = str(form.instance.categoria) if form.instance.categoria else "Sin categoría"
-            # Formatear la fecha: día y las 3 primeras letras del mes (con punto)
             fecha_str = form.cleaned_data['fecha'].strftime("%d %b.").lstrip("0")
-            # Formatear la hora: en formato "h:mm AM/PM"
             hora_str = form.cleaned_data['hora'].strftime("%I:%M %p").lstrip("0").upper()
             form.instance.nombre = f"{cat_name} - {fecha_str} {hora_str}"
 
-
         return super().form_valid(form)
+
 
     def get_success_url(self):
         tipo = self.request.GET.get('tipo', 'entrenamiento')
@@ -167,47 +137,24 @@ class EventoUpdateView(AdminEntrenadorRequiredMixin, UpdateView):
         return context
 
     def form_valid(self, form):
-        tipo = self.request.GET.get('tipo', self.object.tipo)
+        tipo = self.request.GET.get('tipo', form.instance.tipo)
+        form.instance.tipo = tipo
         if tipo == 'torneo':
-            form.instance.tipo = 'torneo'
             form.instance.entrenador = None
             form.instance.categoria = None
             form.instance.capacidad = 999
         else:
-            form.instance.tipo = 'entrenamiento'
             form.instance.costo = None
-            # No se asigna automáticamente el entrenador; se espera que venga del formulario
 
-        event_date = form.cleaned_data.get('fecha')
-        event_id = self.object.id if self.object else None
-        today = date.today()
-        if tipo == 'entrenamiento':
-            if event_date < today:
-                form.add_error('fecha', 'No se pueden actualizar entrenamientos en el pasado.')
-                return self.form_invalid(form)
-            if event_date > today + relativedelta(months=+6):
-                form.add_error('fecha', 'No se pueden actualizar entrenamientos con más de 6 meses de antelación.')
-                return self.form_invalid(form)
-        else:
-            if event_date < today - timedelta(days=7):
-                form.add_error('fecha', 'No se pueden actualizar torneos de más de una semana atrás.')
-                return self.form_invalid(form)
-            if event_date > today + relativedelta(years=+1):
-                form.add_error('fecha', 'No se pueden actualizar torneos con más de un año de antelación.')
-                return self.form_invalid(form)
-
-        # Calcular el intervalo del nuevo evento
-        new_start = datetime.combine(form.cleaned_data['fecha'], form.cleaned_data['hora'])
-        new_end = new_start + timedelta(minutes=form.cleaned_data['duracion'])
-
-        if not check_event_time_restrictions(form, new_start, new_end, tipo, event_date):
-            return self.form_invalid(form)
-
-        # Solapamiento con otros eventos (se filtra por fecha)
-        if not check_event_overlap(form, new_start, new_end, tipo, event_id):
-            return self.form_invalid(form)
+        # Generar nombre predeterminado solo si no hay
+        if tipo == 'entrenamiento' and not form.instance.nombre:
+            cat_name = str(form.instance.categoria) if form.instance.categoria else "Sin categoría"
+            fecha_str = form.cleaned_data['fecha'].strftime("%d %b.").lstrip("0")
+            hora_str = form.cleaned_data['hora'].strftime("%I:%M %p").lstrip("0").upper()
+            form.instance.nombre = f"{cat_name} - {fecha_str} {hora_str}"
 
         return super().form_valid(form)
+
 
 class EventoDeleteView(AdminEntrenadorRequiredMixin, DeleteView):
     model = Evento
