@@ -319,8 +319,9 @@ from datetime import datetime, timedelta
 
 def check_event_overlap(form, new_start, new_end, tipo, event_id):
     overlapping_events = Evento.objects.filter(fecha=form.cleaned_data['fecha']).exclude(id=event_id)
+    
     if tipo == 'torneo':
-        # No se permite ningún solapamiento para torneos
+        # Torneos no permiten solapamientos de ningún tipo
         for evt in overlapping_events:
             evt_start = datetime.combine(evt.fecha, evt.hora)
             evt_end = evt_start + timedelta(minutes=evt.duracion)
@@ -328,7 +329,7 @@ def check_event_overlap(form, new_start, new_end, tipo, event_id):
                 form.add_error(None, "Existe un evento que se cruza en ese horario; no se puede crear el torneo.")
                 return False
     else:
-        # Calcular solapamientos entre entrenamientos
+        # Entrenamientos: validar solapamientos según capacidad por cancha
         overlapping = []
         for evt in overlapping_events.filter(tipo='entrenamiento'):
             evt_start = datetime.combine(evt.fecha, evt.hora)
@@ -336,17 +337,25 @@ def check_event_overlap(form, new_start, new_end, tipo, event_id):
             if new_start < evt_end and new_end > evt_start:
                 overlapping.append(evt)
 
-        # Comprobación de capacidad y solapamientos
         new_capacity = form.cleaned_data.get('capacidad', 0)
+
         if len(overlapping) >= 2:
             form.add_error(None, "Ya se han reservado las dos canchas en ese horario.")
             return False
-        if len(overlapping) == 0 and new_capacity > 12:
-            form.add_error('capacidad', "La capacidad para un entrenamiento sin solapamiento no puede exceder 12 (dos canchas).")
-            return False
-        elif len(overlapping) == 1 and new_capacity > 6:
-            form.add_error('capacidad', "La capacidad para un entrenamiento con un solapamiento no puede exceder 6 (una cancha).")
-            return False
+
+        if len(overlapping) == 0:
+            if new_capacity > 12:
+                form.add_error('capacidad', "La capacidad para un entrenamiento sin solapamiento no puede exceder 12 (dos canchas).")
+                return False
+
+        elif len(overlapping) == 1:
+            other_event = overlapping[0]
+            if other_event.capacidad > 6:
+                form.add_error(None, f"El evento existente ya ocupa más de una cancha (capacidad {other_event.capacidad}).")
+                return False
+            if new_capacity > 6:
+                form.add_error('capacidad', "La capacidad para un entrenamiento solapado no puede exceder 6 (una cancha).")
+                return False
 
     return True
 

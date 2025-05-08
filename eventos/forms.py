@@ -70,6 +70,14 @@ class EventoForm(forms.ModelForm):
         new_start = datetime.combine(fecha, hora)
         new_end = new_start + timedelta(minutes=duracion)
 
+        # Validar que el evento completo (inicio + duración) esté dentro del rango permitido
+        inicio_permitido = datetime.combine(fecha, time(6, 0))
+        fin_permitido = datetime.combine(fecha, time(22, 0))
+
+        if new_start < inicio_permitido or new_end > fin_permitido:
+            self.add_error('hora', f"{'Entrenamientos' if tipo == 'entrenamiento' else 'Torneos'} deben comenzar no antes de las 6:00 AM y finalizar antes de las 10:00 PM.")
+
+
         # 1. Validaciones por tipo
         if tipo == 'entrenamiento':
             if fecha < today:
@@ -77,15 +85,13 @@ class EventoForm(forms.ModelForm):
             elif fecha > today + relativedelta(months=+6):
                 self.add_error('fecha', 'No se pueden crear entrenamientos con más de 6 meses de antelación.')
             # Horario prohibido: 12:00 AM a 6:00 AM
-            if hora < time(6, 0):
-                self.add_error('hora', 'No se pueden programar entrenamientos antes de las 6:00 AM.')
+
         elif tipo == 'torneo':
             if fecha < today - timedelta(days=7):
                 self.add_error('fecha', 'No se pueden crear torneos de más de una semana atrás.')
             elif fecha > today + relativedelta(years=+1):
                 self.add_error('fecha', 'No se pueden crear torneos con más de un año de antelación.')
-            if hora < time(6, 0) or hora >= time(22, 0):
-                self.add_error('hora', 'Los torneos deben realizarse entre 6:00 AM y 10:00 PM.')
+
 
         # 2. Validar solapamientos
         overlapping_events = Evento.objects.filter(fecha=fecha).exclude(id=evento_id)
