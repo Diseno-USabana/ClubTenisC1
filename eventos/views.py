@@ -395,3 +395,39 @@ def guardar_asistencia_entrenamiento(request, evento_id):
 
     messages.success(request, "Asistencia actualizada correctamente.")
     return redirect('eventos:entrenamiento_detail', pk=evento_id)
+
+class EntrenamientoHistorialListView(UsuarioSessionMixin, ListView):
+    model = Evento
+    template_name = 'eventos/entrenamientos_historial.html'
+    context_object_name = 'eventos'
+
+    def get_queryset(self):
+        current_user = self.get_current_user(self.request)
+        qs = Evento.objects.filter(tipo='entrenamiento')
+
+        if current_user:
+            if current_user.rol == 'miembro':
+                entrenamientos_ids = AsistenciaEntrenamiento.objects.filter(
+                    usuario=current_user
+                ).values_list('entrenamiento_id', flat=True)
+                qs = qs.filter(id__in=entrenamientos_ids)
+            # admin y entrenador ven todo
+        else:
+            qs = qs.none()
+
+        # Solo mostrar eventos ya finalizados
+        now = timezone.now()
+        qs = qs.filter(
+            fecha__lt=now.date()
+        ) | qs.filter(
+            fecha=now.date(),
+            hora__lt=now.time()
+        )
+        return qs.order_by('-fecha', '-hora')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        current_user = self.get_current_user(self.request)
+        if current_user:
+            context['current_role'] = current_user.rol
+        return context
