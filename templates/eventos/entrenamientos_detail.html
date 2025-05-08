@@ -23,12 +23,51 @@
             <h2 class="text-brown">⚙️ Administración</h2>
             <a href="{% url 'eventos:edit' evento.id %}" class="btn btn-warning">✏️ Editar Entrenamiento</a>
             <form action="{% url 'eventos:delete' evento.id %}" method="post" class="d-inline"
-                  onsubmit="return confirm('¿Seguro que deseas eliminar este entrenamiento?');">
+                onsubmit="return confirm('¿Seguro que deseas eliminar este entrenamiento?');">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger">🗑️ Eliminar</button>
             </form>
         </div>
+
+        {% if asistencias %}
+            <hr>
+            <div class="mt-4">
+                <h3 class="text-center text-brown">📝 Toma de Asistencia</h3>
+                <form method="post" action="{% url 'eventos:guardar_asistencia_entrenamiento' evento.id %}">
+                    {% csrf_token %}
+                    <table class="table table-bordered mt-3 bg-white">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for asistencia in asistencias %}
+                                <tr>
+                                    <td>{{ asistencia.usuario.nombre }} {{ asistencia.usuario.apellidos }}</td>
+                                    <td>
+                                        <select name="estado_{{ asistencia.id }}" class="form-control">
+                                            <option value="pendiente" {% if asistencia.estado == "pendiente" %}selected{% endif %}>Pendiente</option>
+                                            <option value="presente" {% if asistencia.estado == "presente" %}selected{% endif %}>Presente</option>
+                                            <option value="ausente" {% if asistencia.estado == "ausente" %}selected{% endif %}>Ausente</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="text-center mt-3">
+                        <button type="submit" class="btn btn-success">✅ Guardar Cambios</button>
+                        <a href="{% url 'eventos:entrenamiento_detail' evento.id %}" class="btn btn-secondary">❌ Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        {% else %}
+            <p class="text-center mt-3 text-muted">No hay usuarios inscritos aún.</p>
+        {% endif %}
     {% endif %}
+
     
     <div class="text-center mt-4">
         <a href="{% url 'eventos:entrenamientos_list' %}" class="btn btn-outline-brown">🔙 Regresar a la lista de entrenamientos</a>

@@ -170,9 +170,15 @@ class EntrenamientoDetailView(UsuarioSessionMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         current_user = self.get_current_user(self.request)
-        context['can_edit'] = current_user and current_user.rol in ['admin','entrenador']
+        context['can_edit'] = current_user and current_user.rol in ['admin', 'entrenador']
         context['user_is_member'] = current_user and current_user.rol == 'miembro'
+
+        if context['can_edit']:
+            evento = self.get_object()
+            context['asistencias'] = AsistenciaEntrenamiento.objects.filter(entrenamiento=evento).select_related('usuario').order_by('usuario__nombre')
+        
         return context
+
 
 class TorneoDetailView(UsuarioSessionMixin, DetailView):
     model = Evento
@@ -216,7 +222,7 @@ def inscribirse_entrenamiento(request, evento_id):
     AsistenciaEntrenamiento.objects.create(
         usuario=current_user,
         entrenamiento=evento,
-        estado='presente'
+        estado='pendiente'
     )
     messages.success(request, "Inscripción exitosa en el entrenamiento.")
     return redirect('eventos:entrenamientos_list')
@@ -371,3 +377,21 @@ def filter_upcoming_events(queryset, event_type):
     )
     return upcoming_events
 
+@require_POST
+def guardar_asistencia_entrenamiento(request, evento_id):
+    current_user = UsuarioSessionMixin().get_current_user(request)
+    if not current_user or current_user.rol not in ['admin', 'entrenador']:
+        messages.error(request, "No tienes permiso para modificar asistencia.")
+        return redirect('eventos:entrenamiento_detail', pk=evento_id)
+
+    evento = get_object_or_404(Evento, id=evento_id, tipo='entrenamiento')
+    asistencias = AsistenciaEntrenamiento.objects.filter(entrenamiento=evento)
+
+    for asistencia in asistencias:
+        estado_nuevo = request.POST.get(f"estado_{asistencia.id}")
+        if estado_nuevo in ['pendiente', 'presente', 'ausente']:
+            asistencia.estado = estado_nuevo
+            asistencia.save()
+
+    messages.success(request, "Asistencia actualizada correctamente.")
+    return redirect('eventos:entrenamiento_detail', pk=evento_id)

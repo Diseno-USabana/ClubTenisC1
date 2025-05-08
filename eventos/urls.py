@@ -11,6 +11,7 @@ from .views import (
     desinscribirse_entrenamiento,
     inscribirse_torneo,
     desinscribirse_torneo,
+    guardar_asistencia_entrenamiento,
 )
 
 app_name = 'eventos'
@@ -35,4 +36,7 @@ urlpatterns = [
     # Acciones para torneos
     path('<int:evento_id>/inscribirse_torneo/', inscribirse_torneo, name='inscribirse_torneo'),
     path('<int:evento_id>/desinscribirse_torneo/', desinscribirse_torneo, name='desinscribirse_torneo'),
+
+    path('<int:evento_id>/guardar_asistencia/', guardar_asistencia_entrenamiento, name='guardar_asistencia_entrenamiento'),
+
 ]
