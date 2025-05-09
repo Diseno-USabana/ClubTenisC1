@@ -27,12 +27,25 @@ class EntrenamientoListView(UsuarioSessionMixin, ListView):
         if current_user and current_user.rol == 'miembro':
             # Solo eventos que coincidan con su categoría
             filtered_qs = filtered_qs.filter(categoria=current_user.id_categoria)
+            
             # Anotar cantidad de asistentes y filtrar por capacidad
-            filtered_qs = filtered_qs.annotate(num_asistentes=models.Count('asistencias_entrenamiento')).filter(num_asistentes__lt=models.F('capacidad'))
-            # Incluir también los eventos en los que ya está inscrito, incluso si están llenos
-            inscritos_qs = AsistenciaEntrenamiento.objects.filter(usuario=current_user, entrenamiento__in=qs)
-            inscritos_ids = inscritos_qs.values_list('entrenamiento_id', flat=True)
-            filtered_qs = filtered_qs | Evento.objects.filter(id__in=inscritos_ids)
+            filtered_qs = filtered_qs.annotate(num_asistentes=models.Count('asistencias_entrenamiento')).filter(
+                num_asistentes__lt=models.F('capacidad')
+            )
+            
+            # Incluir también los eventos en los que ya está inscrito (solo si siguen vigentes)
+            inscritos_ids = AsistenciaEntrenamiento.objects.filter(
+                usuario=current_user,
+                entrenamiento__in=qs  # `qs` aún contiene todos los eventos tipo 'entrenamiento'
+            ).values_list('entrenamiento_id', flat=True)
+            
+            # Filtrar esos eventos inscritos, pero aplicar también el filtro de eventos futuros
+            inscritos_qs = Evento.objects.filter(id__in=inscritos_ids)
+            inscritos_qs = filter_upcoming_events(inscritos_qs, 'entrenamiento')
+
+            # Unir con los otros filtrados
+            filtered_qs = filtered_qs | inscritos_qs
+
 
         return filtered_qs.distinct()
 
@@ -424,10 +437,25 @@ class EntrenamientoHistorialListView(UsuarioSessionMixin, ListView):
             hora__lt=now.time()
         )
         return qs.order_by('-fecha', '-hora')
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         current_user = self.get_current_user(self.request)
         if current_user:
             context['current_role'] = current_user.rol
+            if current_user.rol == 'miembro':
+                entrenamientos = context['eventos']
+                asistencias = AsistenciaEntrenamiento.objects.filter(
+                    usuario=current_user,
+                    entrenamiento__in=entrenamientos
+                )
+                estado_dict = {str(a.entrenamiento_id): a.estado for a in asistencias}
+
+                # DEBUG PRINTS
+                print("DEBUG - Entrenamientos en historial:", list(entrenamientos))
+                print("DEBUG - Asistencias recuperadas:", list(asistencias))
+                print("DEBUG - Diccionario estado_asistencias:", estado_dict)
+
+                context['estado_asistencias'] = estado_dict
         return context
+

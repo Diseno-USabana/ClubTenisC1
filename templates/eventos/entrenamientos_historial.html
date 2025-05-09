@@ -27,25 +27,27 @@
                                 {% endif %}
                             </p>
                             {% if current_role == "miembro" %}
-                                {% with evento.asistencias_entrenamiento|get_user_asistencia:request.session.custom_user_id as asistencia %}
-                                    <p>
-                                        <strong>📌 Estado:</strong>
-                                        {% if asistencia %}
-                                            {% if asistencia.estado == 'presente' %}
-                                                <span class="text-success">✅ Presente</span>
-                                            {% elif asistencia.estado == 'ausente' %}
-                                                <span class="text-danger">❌ Ausente</span>
-                                            {% else %}
-                                                <span class="text-warning">🕗 Pendiente</span>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="text-muted">Sin registro</span>
+                                {% with evento.id|stringformat:"s" as eid %}
+                                    {% for key, value in estado_asistencias.items %}
+                                        {% if key == eid %}
+                                            {% with value as estado %}
+                                                {% if estado == 'presente' %}
+                                                    <p><strong>📌 Estado:</strong> <span class="text-success">✅ Presente</span></p>
+                                                {% elif estado == 'ausente' %}
+                                                    <p><strong>📌 Estado:</strong> <span class="text-danger">❌ Ausente</span></p>
+                                                {% elif estado == 'pendiente' %}
+                                                    <p><strong>📌 Estado:</strong> <span class="text-warning">🕗 Pendiente</span></p>
+                                                {% else %}
+                                                    <p><strong>📌 Estado:</strong> <span class="text-muted">Sin registro</span></p>
+                                                {% endif %}
+                                            {% endwith %}
                                         {% endif %}
-                                    </p>
+                                    {% endfor %}
                                 {% endwith %}
                             {% else %}
                                 <a href="{% url 'eventos:entrenamiento_detail' evento.id %}" class="btn btn-outline-brown btn-block mt-auto">Ver Detalle</a>
                             {% endif %}
+                                                    
                         </div>
                     </div>
                 </div>
