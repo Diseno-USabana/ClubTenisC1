@@ -13,6 +13,8 @@ from .views import (
     inscribirse_torneo,
     desinscribirse_torneo,
     guardar_asistencia_entrenamiento,
+    guardar_resultados_torneo,
+    torneo_historial,
 )
 
 app_name = 'eventos'
@@ -41,4 +43,7 @@ urlpatterns = [
     path('<int:evento_id>/guardar_asistencia/', guardar_asistencia_entrenamiento, name='guardar_asistencia_entrenamiento'),
 
     path('historial/', EntrenamientoHistorialListView.as_view(), name='entrenamientos_historial'),
+    path('<int:evento_id>/guardar_resultados_torneo/', guardar_resultados_torneo, name='guardar_resultados_torneo'),
+    path('torneos/historial/', torneo_historial, name='torneos_historial'),
+
 ]

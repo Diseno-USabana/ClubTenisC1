@@ -10,6 +10,7 @@ from datetime import date, datetime, timedelta, time
 from dateutil.relativedelta import relativedelta
 from utils.role_mixins import AdminEntrenadorRequiredMixin, UsuarioSessionMixin
 from django.db import models
+from django.http import HttpResponse
 
 # ======================================
 # Lista de Entrenamientos
@@ -204,11 +205,16 @@ class TorneoDetailView(UsuarioSessionMixin, DetailView):
         current_user = self.get_current_user(self.request)
         context['can_edit'] = current_user and current_user.rol in ['admin','entrenador']
         context['user_is_member'] = current_user and current_user.rol == 'miembro'
-        asistencia = None
+
         if current_user:
-            asistencia = AsistenciaTorneo.objects.filter(usuario=current_user, torneo=self.object).first()
-        context['user_inscrito'] = True if asistencia else False
+            context['user_inscrito'] = AsistenciaTorneo.objects.filter(usuario=current_user, torneo=self.object).exists()
+        
+        if context['can_edit']:
+            asistentes = AsistenciaTorneo.objects.filter(torneo=self.object).select_related('usuario').order_by('puesto', 'usuario__nombre')
+            context['asistentes_torneo'] = asistentes
+
         return context
+
 
 # ======================================
 # Inscripción/Desinscripción
@@ -458,4 +464,33 @@ class EntrenamientoHistorialListView(UsuarioSessionMixin, ListView):
 
                 context['estado_asistencias'] = estado_dict
         return context
+    
+
+@require_POST
+def guardar_resultados_torneo(request, evento_id):
+    current_user = UsuarioSessionMixin().get_current_user(request)
+    if not current_user or current_user.rol not in ['admin', 'entrenador']:
+        messages.error(request, "No tienes permiso para registrar resultados.")
+        return redirect('eventos:torneo_detail', pk=evento_id)
+
+    evento = get_object_or_404(Evento, id=evento_id, tipo='torneo')
+    asistentes = AsistenciaTorneo.objects.filter(torneo=evento)
+
+    # Leer datos del POST
+    for asistencia in asistentes:
+        puesto_str = request.POST.get(f'puesto_{asistencia.id}')
+        try:
+            puesto = int(puesto_str)
+            asistencia.puesto = puesto
+            asistencia.save()
+        except (TypeError, ValueError):
+            continue  # Ignora valores no válidos
+
+    messages.success(request, "Resultados del torneo guardados correctamente.")
+    return redirect('eventos:torneo_detail', pk=evento_id)
+
+
+def torneo_historial(request):
+    return HttpResponse("Historial de torneos aún no implementado.")
+
 
