@@ -477,14 +477,21 @@ def guardar_resultados_torneo(request, evento_id):
     asistentes = AsistenciaTorneo.objects.filter(torneo=evento)
 
     # Leer datos del POST
-    for asistencia in asistentes:
-        puesto_str = request.POST.get(f'puesto_{asistencia.id}')
-        try:
-            puesto = int(puesto_str)
-            asistencia.puesto = puesto
-            asistencia.save()
-        except (TypeError, ValueError):
-            continue  # Ignora valores no válidos
+    orden_ids = request.POST.get('orden_ids')
+    if not orden_ids:
+        messages.error(request, "No se recibió ningún dato de orden.")
+        return redirect('eventos:torneo_detail', pk=evento_id)
+
+    if orden_ids:
+        ids = orden_ids.split(',')
+        for idx, asistencia_id in enumerate(ids, start=1):
+            try:
+                asistencia = AsistenciaTorneo.objects.get(id=int(asistencia_id), torneo=evento)
+                asistencia.puesto = idx
+                asistencia.save()
+            except (ValueError, AsistenciaTorneo.DoesNotExist):
+                continue
+
 
     messages.success(request, "Resultados del torneo guardados correctamente.")
     return redirect('eventos:torneo_detail', pk=evento_id)

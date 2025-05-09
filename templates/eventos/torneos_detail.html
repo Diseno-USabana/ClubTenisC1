@@ -1,4 +1,5 @@
 {% extends '_base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-4">
@@ -54,35 +55,23 @@
             <hr>
             <div class="mt-5">
                 <h3 class="text-brown text-center">📋 Resultados del Torneo</h3>
-                <form method="post" action="{% url 'eventos:guardar_resultados_torneo' evento.id %}">
+                <form method="post" action="{% url 'eventos:guardar_resultados_torneo' evento.id %}" id="resultadosForm">
                     {% csrf_token %}
-                    <div class="table-responsive mt-3">
-                        <table class="table table-striped table-bordered">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>Jugador</th>
-                                    <th>Categoría</th>
-                                    <th>Puesto</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for asistencia in asistentes_torneo %}
-                                    <tr>
-                                        <td>{{ asistencia.usuario.nombre }} {{ asistencia.usuario.apellidos }}</td>
-                                        <td>{{ asistencia.categoria }}</td>
-                                        <td>
-                                            <input type="number" name="puesto_{{ asistencia.id }}" class="form-control" value="{{ asistencia.puesto }}" min="1" step="1">
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="text-center">
+                    <ul id="sortable-list" class="list-group">
+                        {% for asistencia in asistentes_torneo %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center draggable-item" data-id="{{ asistencia.id }}">
+                                <span>{{ asistencia.usuario.nombre }} {{ asistencia.usuario.apellidos }} - {{ asistencia.categoria }}</span>
+                                <span class="handle" style="cursor: move;">↕</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <input type="hidden" name="orden_ids" id="ordenIdsInput">
+                    <div class="text-center mt-3">
                         <button type="submit" class="btn btn-success">💾 Guardar Resultados</button>
                     </div>
                 </form>
             </div>
+            
         {% endif %}
     {% endif %}
 
@@ -97,5 +86,19 @@
     .bg-light { background-color: #f8f9fa; }
     .btn-outline-brown { border: 2px solid #6F4E37; color: #6F4E37; }
     .btn-outline-brown:hover { background-color: #6F4E37; color: white; }
+
+    .draggable-item:hover {
+        background-color: #f1f1f1;
+    }
+    .handle {
+        font-size: 18px;
+        color: #6F4E37;
+    }
 </style>
+<!-- SortableJS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<!-- Script personalizado -->
+<script src="{% static 'eventos/js/drag_resultados.js' %}"></script>
+
 {% endblock %}
