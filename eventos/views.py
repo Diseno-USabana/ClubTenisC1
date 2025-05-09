@@ -10,7 +10,7 @@ from datetime import date, datetime, timedelta, time
 from dateutil.relativedelta import relativedelta
 from utils.role_mixins import AdminEntrenadorRequiredMixin, UsuarioSessionMixin
 from django.db import models
-from django.http import HttpResponse
+from django.utils.timezone import now
 
 # ======================================
 # Lista de Entrenamientos
@@ -203,18 +203,28 @@ class TorneoDetailView(UsuarioSessionMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         current_user = self.get_current_user(self.request)
-        context['can_edit'] = current_user and current_user.rol in ['admin','entrenador']
+        evento = self.get_object()
+
+        context['can_edit'] = current_user and current_user.rol in ['admin', 'entrenador']
         context['user_is_member'] = current_user and current_user.rol == 'miembro'
 
         if current_user:
-            context['user_inscrito'] = AsistenciaTorneo.objects.filter(usuario=current_user, torneo=self.object).exists()
-        
-        if context['can_edit']:
-            asistentes = AsistenciaTorneo.objects.filter(torneo=self.object).select_related('usuario').order_by('puesto', 'usuario__nombre')
-            context['asistentes_torneo'] = asistentes
+            context['user_inscrito'] = AsistenciaTorneo.objects.filter(
+                usuario=current_user,
+                torneo=evento
+            ).exists()
+
+        # Se pasa siempre la lista de asistentes, ordenada por puesto
+        context['asistentes_torneo'] = AsistenciaTorneo.objects.filter(
+            torneo=evento
+        ).select_related('usuario').order_by('puesto', 'usuario__nombre')
+
+        context['evento_finalizado'] = (
+            evento.fecha < now().date() or
+            (evento.fecha == now().date() and evento.hora < now().time())
+        )
 
         return context
-
 
 # ======================================
 # Inscripción/Desinscripción
@@ -497,7 +507,27 @@ def guardar_resultados_torneo(request, evento_id):
     return redirect('eventos:torneo_detail', pk=evento_id)
 
 
-def torneo_historial(request):
-    return HttpResponse("Historial de torneos aún no implementado.")
+class TorneoHistorialListView(UsuarioSessionMixin, ListView):
+    model = Evento
+    template_name = 'eventos/torneos_historial.html'
+    context_object_name = 'eventos'
 
+    def get_queryset(self):
+        qs = Evento.objects.filter(tipo='torneo')
 
+        # Solo eventos que ya hayan finalizado (fecha pasada o hoy con hora ya pasada)
+        now = timezone.now()
+        qs = qs.filter(
+            fecha__lt=now.date()
+        ) | qs.filter(
+            fecha=now.date(),
+            hora__lt=now.time()
+        )
+        return qs.order_by('-fecha', '-hora')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        current_user = self.get_current_user(self.request)
+        if current_user:
+            context['current_role'] = current_user.rol
+        return context

@@ -8,13 +8,13 @@ from .views import (
     EventoUpdateView,
     EventoDeleteView,
     EntrenamientoHistorialListView,
+    TorneoHistorialListView,
     inscribirse_entrenamiento,
     desinscribirse_entrenamiento,
     inscribirse_torneo,
     desinscribirse_torneo,
     guardar_asistencia_entrenamiento,
     guardar_resultados_torneo,
-    torneo_historial,
 )
 
 app_name = 'eventos'
@@ -44,6 +44,6 @@ urlpatterns = [
 
     path('historial/', EntrenamientoHistorialListView.as_view(), name='entrenamientos_historial'),
     path('<int:evento_id>/guardar_resultados_torneo/', guardar_resultados_torneo, name='guardar_resultados_torneo'),
-    path('torneos/historial/', torneo_historial, name='torneos_historial'),
+    path('torneos/historial/', TorneoHistorialListView.as_view(), name='torneos_historial'),
 
 ]
