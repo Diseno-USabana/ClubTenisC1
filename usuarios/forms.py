@@ -1,5 +1,6 @@
 from django import forms
 from .models import Usuario
+from datetime import date
 
 class UsuarioForm(forms.ModelForm):
     nivel = forms.ChoiceField(
@@ -35,12 +36,12 @@ class UsuarioForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
-        self.modo = kwargs.pop('modo', None)       # "register" o "create"
+        self.modo = kwargs.pop('modo', None)       # "register" o "create" o "update"
         self.current_user = kwargs.pop('current_user', None)
         super().__init__(*args, **kwargs)
 
         # ——————————————————————————————————————————
-        # Paso 1: lógica original para register (si aplica)
+        # Paso 1: lógica para register 
         if self.modo == "register":
             self.fields["password_confirm"] = forms.CharField(
                 widget=forms.PasswordInput(),
@@ -53,6 +54,38 @@ class UsuarioForm(forms.ModelForm):
             self.fields["estado"].widget = forms.HiddenInput()
             self.fields["rol"].required = False
             self.fields["estado"].required = False
+        # ——————————————————————————————————————————
+        # EDICIÓN: restringir campos según rol
+        elif self.modo == "update" and self.current_user and self.instance:
+            # — Ocultar el campo password en edición —
+            if "password" in self.fields:
+                # No forzar su edición aquí
+                self.fields["password"].required = False
+                self.fields["password"].widget = forms.HiddenInput()
+            is_admin = self.current_user.rol == 'admin'
+            editing_self = self.instance.id == self.current_user.id
+            if not is_admin and editing_self:
+                campos_protegidos = [
+                    "rol", "estado", "nombre", "apellidos", "tipo_documento", "num_documento",
+                    "fecha_nacimiento", "matricula", "id_categoria", "nivel"
+                ]
+                for campo in campos_protegidos:
+                    if campo in self.fields:
+                        self.fields[campo].widget.attrs["disabled"] = "disabled"
+                        self.fields[campo].widget.attrs["style"] = "pointer-events: none; border: none; background: none;"
+                        # ← insertamos esta línea:
+                        self.fields[campo].required = False
+
+                
+
+
+                # Mostrar el valor actual de nivel para adultos
+                if self.instance.rol == "miembro" and self.instance.fecha_nacimiento:
+                    edad = date.today().year - self.instance.fecha_nacimiento.year
+                    if edad > 21 and self.instance.id_categoria:
+                        self.initial["nivel"] = self.instance.id_categoria.nombre  # No es 'nivel', es 'id_categoria'
+                                    
+
         # ——————————————————————————————————————————
 
         # Paso 2: si es POST, determinar rol y eliminar campos irrelevantes
@@ -74,8 +107,36 @@ class UsuarioForm(forms.ModelForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        
-        # Si estamos en modo register, establecer valores por defecto para rol y estado
+
+        # Si estamos en modo edición y el usuario se edita a sí mismo (no admin),
+        if self.modo == "update" and self.instance and self.current_user:
+            is_admin = self.current_user.rol == 'admin'
+            editing_self = self.instance.id == self.current_user.id
+            if editing_self and not is_admin:
+                # 1) Restaura TODOS los campos protegidos
+                protegidos = [
+                    'rol','nombre','apellidos','estado',
+                    'tipo_documento','num_documento',
+                    'fecha_nacimiento','id_categoria','matricula'
+                ]
+                for field in protegidos:
+                    cleaned_data[field] = getattr(self.instance, field)
+
+                # 2) Validar solo lo que sí puede cambiar
+                if not cleaned_data.get('correo'):
+                    self.add_error('correo', 'El correo es obligatorio.')
+                if not cleaned_data.get('telefono'):
+                    self.add_error('telefono', 'El teléfono es obligatorio.')
+                # La contraseña es opcional: la cambiará solo si rellena algo
+
+                # 3) Devolver YA, sin más validaciones
+                print("DEBUG ✅ cleaned_data en update:", cleaned_data)
+                return cleaned_data
+
+
+        # ===========================
+        # Flujo normal para register/create
+        # ===========================
         if self.modo == "register":
             cleaned_data["rol"] = "miembro"
             cleaned_data["estado"] = "activo"
@@ -87,7 +148,8 @@ class UsuarioForm(forms.ModelForm):
         correo = cleaned_data.get("correo")
         password = cleaned_data.get("password")
         estado = cleaned_data.get("estado")
-        
+
+
         if not rol:
             self.add_error("rol", "El rol es obligatorio.")
         if not nombre:
@@ -96,8 +158,16 @@ class UsuarioForm(forms.ModelForm):
             self.add_error("apellidos", "Los apellidos son obligatorios.")
         if not correo:
             self.add_error("correo", "El correo es obligatorio.")
-        if not password:
-            self.add_error("password", "La contraseña es obligatoria.")
+        
+        if self.modo in ["register", "create"]:
+            if not password:
+                self.add_error("password", "La contraseña es obligatoria.")
+        elif self.modo == "update":
+            # Solo forzar si el campo sigue presente (puede haber sido ocultado)
+            if "password" in self.fields and self.fields["password"].required and not password:
+                self.add_error("password", "La contraseña es obligatoria.")
+
+
         if not estado:
             self.add_error("estado", "El estado es obligatorio.")
 
@@ -108,8 +178,7 @@ class UsuarioForm(forms.ModelForm):
 
         # Validaciones específicas por rol
         if rol == 'admin':
-            # Solo se requiere nombre, apellidos, correo, password y estado
-            pass  # ya fueron validados arriba
+            pass
         elif rol == 'entrenador':
             if not cleaned_data.get("telefono"):
                 self.add_error("telefono", "El teléfono es obligatorio para entrenadores.")
@@ -127,7 +196,6 @@ class UsuarioForm(forms.ModelForm):
             if not cleaned_data.get("fecha_nacimiento"):
                 self.add_error("fecha_nacimiento", "La fecha de nacimiento es obligatoria para miembros.")
             else:
-                # Validar el campo 'nivel' si el miembro es adulto (edad >= 22)
                 from datetime import date
                 today = date.today()
                 age = today.year - cleaned_data["fecha_nacimiento"].year
@@ -136,8 +204,21 @@ class UsuarioForm(forms.ModelForm):
         else:
             self.add_error("rol", "Rol no válido o no reconocido.")
 
-        return cleaned_data
+        # Restaurar valores protegidos si no vienen en POST (modo update)
+        if self.modo == "update" and self.instance and self.current_user:
+            is_admin = self.current_user.rol == 'admin'
+            editing_self = self.instance.id == self.current_user.id
 
+            if not is_admin and editing_self:
+                for field in ["rol", "estado", "nombre", "apellidos", "tipo_documento", "num_documento", "fecha_nacimiento", "matricula", "id_categoria"]:
+                    if field in self.fields and field not in self.data:
+                        cleaned_data[field] = getattr(self.instance, field)
+                if "nivel" not in self.data and "id_categoria" in self.fields:
+                    cleaned_data["id_categoria"] = self.instance.id_categoria
+
+        print("DEBUG ✅ cleaned_data final:", cleaned_data)
+        print("DEBUG ✅ instance pre-save:", self.instance)
+        return cleaned_data
 
 
 class RegistrationForm(forms.ModelForm):
@@ -204,7 +285,7 @@ class RegistrationForm(forms.ModelForm):
                 if not nivel:
                     self.add_error('nivel', "Debes seleccionar tu nivel de juego para adultos")
         return cleaned_data
-        return cleaned_data
+
 
 
 class CustomLoginForm(forms.Form):

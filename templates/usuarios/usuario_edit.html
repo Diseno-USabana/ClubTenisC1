@@ -31,48 +31,113 @@
 
       {# Campos individuales con visibilidad controlada por data-roles #}
       <div class="campo" id="field-nombre" data-roles="admin,entrenador,miembro">
-        <p>{{ form.nombre.label_tag }}<br>{{ form.nombre }}{{ form.nombre.errors }}</p>
+        <p>{{ form.nombre.label_tag }}<br>
+        {% if form.nombre.field.widget.attrs.disabled %}
+          <span>{{ form.nombre.value }}</span>
+        {% else %}
+          {{ form.nombre }}{{ form.nombre.errors }}
+        {% endif %}
+        </p>
       </div>
-
+      
       <div class="campo" id="field-apellidos" data-roles="admin,entrenador,miembro">
-        <p>{{ form.apellidos.label_tag }}<br>{{ form.apellidos }}{{ form.apellidos.errors }}</p>
+        <p>{{ form.apellidos.label_tag }}<br>
+        {% if form.apellidos.field.widget.attrs.disabled %}
+          <span>{{ form.apellidos.value }}</span>
+        {% else %}
+          {{ form.apellidos }}{{ form.apellidos.errors }}
+        {% endif %}
+        </p>
       </div>
-
+      
       <div class="campo" id="field-correo" data-roles="admin,entrenador,miembro">
-        <p>{{ form.correo.label_tag }}<br>{{ form.correo }}{{ form.correo.errors }}</p>
+        <p>{{ form.correo.label_tag }}<br>
+          {{ form.correo }}{{ form.correo.errors }}
+        </p>
       </div>
 
       <div class="campo" id="field-password" data-roles="admin,entrenador,miembro">
-        <p>{{ form.password.label_tag }}<br>{{ form.password }}{{ form.password.errors }}</p>
-      </div>
-
+        <p>
+          {{ form.password.label_tag }}<br>
+      
+          {# Si estamos en edición (usuario existe), siempre mostramos el fake #}
+          {% if usuario %}
+            <input type="text" id="fake_password" value="********" readonly
+                   onclick="window.location.href='{% url 'usuarios:change_password' usuario.id %}'"
+                   style="cursor: pointer; background-color: #f0f0f0; border: 1px solid #ccc; padding: 6px;">
+          {# Si estamos creando, renderizamos el campo real #}
+          {% else %}
+            {{ form.password }}{{ form.password.errors }}
+          {% endif %}
+        </p>
+      </div>   
+      
       <div class="campo" id="field-estado" data-roles="admin,entrenador,miembro">
-        <p>{{ form.estado.label_tag }}<br>{{ form.estado }}{{ form.estado.errors }}</p>
+        <p>{{ form.estado.label_tag }}<br>
+        {% if form.estado.field.widget.attrs.disabled %}
+          <span>{{ form.estado.value }}</span>
+        {% else %}
+          {{ form.estado }}{{ form.estado.errors }}
+        {% endif %}
+        </p>
       </div>
-
+      
       <div class="campo" id="field-telefono" data-roles="entrenador,miembro">
-        <p>{{ form.telefono.label_tag }}<br>{{ form.telefono }}{{ form.telefono.errors }}</p>
+        <p>{{ form.telefono.label_tag }}<br>
+          {{ form.telefono }}{{ form.telefono.errors }}
+        </p>
       </div>
-
+      
       <div class="campo" id="field-tipo_documento" data-roles="entrenador,miembro">
-        <p>{{ form.tipo_documento.label_tag }}<br>{{ form.tipo_documento }}{{ form.tipo_documento.errors }}</p>
+        <p>{{ form.tipo_documento.label_tag }}<br>
+        {% if form.tipo_documento.field.widget.attrs.disabled %}
+          <span>{{ form.tipo_documento.value }}</span>
+        {% else %}
+          {{ form.tipo_documento }}{{ form.tipo_documento.errors }}
+        {% endif %}
+        </p>
       </div>
-
+      
       <div class="campo" id="field-num_documento" data-roles="entrenador,miembro">
-        <p>{{ form.num_documento.label_tag }}<br>{{ form.num_documento }}{{ form.num_documento.errors }}</p>
+        <p>{{ form.num_documento.label_tag }}<br>
+        {% if form.num_documento.field.widget.attrs.disabled %}
+          <span>{{ form.num_documento.value }}</span>
+        {% else %}
+          {{ form.num_documento }}{{ form.num_documento.errors }}
+        {% endif %}
+        </p>
       </div>
-
+      
       <div class="campo" id="field-fecha_nacimiento" data-roles="miembro">
-        <p>{{ form.fecha_nacimiento.label_tag }}<br>{{ form.fecha_nacimiento }}{{ form.fecha_nacimiento.errors }}</p>
+        <p>{{ form.fecha_nacimiento.label_tag }}<br>
+        {% if form.fecha_nacimiento.field.widget.attrs.disabled %}
+          <span>{{ form.fecha_nacimiento.value }}</span>
+        {% else %}
+          {{ form.fecha_nacimiento }}{{ form.fecha_nacimiento.errors }}
+        {% endif %}
+        </p>
       </div>
-
+      
       <div class="campo" id="field-matricula" data-roles="miembro">
-        <p>{{ form.matricula.label_tag }}<br>{{ form.matricula }}{{ form.matricula.errors }}</p>
+        <p>{{ form.matricula.label_tag }}<br>
+        {% if form.matricula.field.widget.attrs.disabled %}
+          <span>{% if form.matricula.value %}Sí{% else %}No{% endif %}</span>
+        {% else %}
+          {{ form.matricula }}{{ form.matricula.errors }}
+        {% endif %}
+        </p>
       </div>
-
+      
       <div class="campo" id="field-nivel" data-roles="miembro" style="display: none;">
-        <p>{{ form.nivel.label_tag }}<br>{{ form.nivel }}{{ form.nivel.errors }}</p>
+        <p>{{ form.nivel.label_tag }}<br>
+        {% if form.nivel.field.widget.attrs.disabled %}
+          <span>{{ form.nivel.value }}</span>
+        {% else %}
+          {{ form.nivel }}{{ form.nivel.errors }}
+        {% endif %}
+        </p>
       </div>
+      
 
       <div class="text-center mt-3">
         <button type="submit" class="btn btn-brown">
