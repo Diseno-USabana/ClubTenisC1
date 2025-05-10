@@ -23,9 +23,15 @@
                     </div>
                     <div id="dropdownMenu" class="dropdown-menu hidden">
                         <p class="menu-header">👤 Hola, "{{ current_user.nombre }}"</p>
-                        <a href="{% url 'usuarios:login' %}" class="menu-item">📈 Estadísticas</a>
-                        <a href="{% url 'usuarios:login' %}" class="menu-item">💳 Pagos</a>
-                        <a href="{% url 'usuarios:logout' %}" class="menu-item">⚙️ Configuración</a>
+                    
+                        <a href="{% url 'usuarios:detail' current_user.id %}" class="menu-item">🙋‍♂️ Mi perfil</a>
+                    
+                        {% if current_user.rol == "admin" %}
+                            <a href="{% url 'usuarios:list' %}" class="menu-item">👥 Usuarios</a>
+                        {% endif %}
+                    
+                        <a href="{% url 'informes:list' %}" class="menu-item">📈 Estadísticas</a>
+                        <a href="{% url 'pagos:list' %}" class="menu-item">💳 Pagos</a>                
                         <a href="{% url 'usuarios:logout' %}" class="menu-item logout">🚪 Cerrar sesión</a>
                     </div>
                 </div>
