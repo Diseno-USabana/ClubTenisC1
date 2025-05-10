@@ -111,14 +111,15 @@ class UsuarioListView(AdminRequiredForListMixin, ListView):
     def get_queryset(self):
         qs = super().get_queryset()
         estado = self.request.GET.get('estado')
+        rol = self.request.GET.get('rol')
+
         if estado:
-            if estado == 'inscrito':
-                estado_filtrado = 'activo'
-            elif estado == 'matriculado':
-                estado_filtrado = 'activo'
-            else:
-                estado_filtrado = estado
+            estado_filtrado = 'activo' if estado in ['inscrito', 'matriculado'] else estado
             qs = qs.filter(estado=estado_filtrado)
+        
+        if rol:
+            qs = qs.filter(rol=rol)
+        
         return qs
 
     def get_context_data(self, **kwargs):
