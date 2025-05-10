@@ -158,31 +158,55 @@ class UsuarioUpdateView(SoloPropioMixin, UpdateView):
     
     def form_valid(self, form):
         current_user = self.get_current_user(self.request)
-        user = form.save(commit=False)
+        user = form.instance  # la instancia a modificar
 
-        # Solo proteger si no es admin editando a otro
+        # --- Debug prints ---
+        print("DEBUG ✅ POST recibido:", self.request.POST)
+        print("DEBUG ✅ cleaned_data final:", form.cleaned_data)
+
+        # --- Campos editables ---
+        user.correo = form.cleaned_data.get("correo")
+        user.telefono = form.cleaned_data.get("telefono")
+
+        # --- Restaurar protegidos si no es admin y edita su propio perfil ---
         is_admin = current_user.rol == 'admin'
         editing_self = current_user.id == user.id
-
+        original = self.get_object()
         if not is_admin and editing_self:
-            # Restaurar los campos protegidos a su valor original (no permitir cambios)
-            original = self.get_object()
-            user.rol = original.rol
-            user.nombre = original.nombre
-            user.apellidos = original.apellidos
-            user.estado = original.estado
-            user.tipo_documento = original.tipo_documento
-            user.num_documento = original.num_documento
-            user.fecha_nacimiento = original.fecha_nacimiento
-            user.matricula = original.matricula
-            user.id_categoria = original.id_categoria  # esto incluye la categoría asignada por edad
-            # También nivel, si quieres protegerlo
-            # user.nivel = original.nivel  # solo si lo tienes como atributo persistente
+            for field in ['rol','nombre','apellidos','estado','tipo_documento',
+                          'num_documento','fecha_nacimiento','matricula','id_categoria']:
+                setattr(user, field, getattr(original, field))
 
-        # Guardar cambios permitidos
-        user.set_password(form.cleaned_data['password'])
+        # --- Contraseña ---
+        raw_pass = form.cleaned_data.get("password")
+        if raw_pass:
+            user.set_password(raw_pass)
+        else:
+            user.password = original.password
+
+        # --- Guardado definitivo ---
         user.save()
+        print("DEBUG ✅ Usuario guardado en DB:", user)
+        # Importante: asignamos self.object para que UpdateView sepa qué usar
+        self.object = user
         return super().form_valid(form)
+    
+    def post(self, request, *args, **kwargs):
+        # Obtener el form con los datos del POST
+        form = self.get_form()
+        # DEBUG: validar form e imprimir errores
+        print("DEBUG 🔍 form.is_valid():", form.is_valid())
+        print("DEBUG 🔍 form.errors:", form.errors)
+        # También los datos limpios si está validando
+        if hasattr(form, 'cleaned_data'):
+            print("DEBUG 🔍 form.cleaned_data:", form.cleaned_data)
+        return super().post(request, *args, **kwargs)
+    
+    def form_invalid(self, form):
+        print("DEBUG 🚫 Entramos en form_invalid")
+        print("DEBUG 🚫 form.errors:", form.errors.as_json())
+        return super().form_invalid(form)
+
 
 
 
