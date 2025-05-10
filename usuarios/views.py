@@ -149,6 +149,42 @@ class UsuarioUpdateView(SoloPropioMixin, UpdateView):
 
     def get_success_url(self):
         return reverse('usuarios:detail', kwargs={'usuario_id': self.object.id})
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['modo'] = 'update'
+        kwargs['current_user'] = self.get_current_user(self.request)
+        return kwargs
+    
+    def form_valid(self, form):
+        current_user = self.get_current_user(self.request)
+        user = form.save(commit=False)
+
+        # Solo proteger si no es admin editando a otro
+        is_admin = current_user.rol == 'admin'
+        editing_self = current_user.id == user.id
+
+        if not is_admin and editing_self:
+            # Restaurar los campos protegidos a su valor original (no permitir cambios)
+            original = self.get_object()
+            user.rol = original.rol
+            user.nombre = original.nombre
+            user.apellidos = original.apellidos
+            user.estado = original.estado
+            user.tipo_documento = original.tipo_documento
+            user.num_documento = original.num_documento
+            user.fecha_nacimiento = original.fecha_nacimiento
+            user.matricula = original.matricula
+            user.id_categoria = original.id_categoria  # esto incluye la categoría asignada por edad
+            # También nivel, si quieres protegerlo
+            # user.nivel = original.nivel  # solo si lo tienes como atributo persistente
+
+        # Guardar cambios permitidos
+        user.set_password(form.cleaned_data['password'])
+        user.save()
+        return super().form_valid(form)
+
+
 
 class UsuarioDeleteView(SoloPropioMixin, DeleteView):
     model = Usuario

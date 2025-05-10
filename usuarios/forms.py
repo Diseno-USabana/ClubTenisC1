@@ -35,12 +35,12 @@ class UsuarioForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
-        self.modo = kwargs.pop('modo', None)       # "register" o "create"
+        self.modo = kwargs.pop('modo', None)       # "register" o "create" o "update"
         self.current_user = kwargs.pop('current_user', None)
         super().__init__(*args, **kwargs)
 
         # ——————————————————————————————————————————
-        # Paso 1: lógica original para register (si aplica)
+        # Paso 1: lógica para register 
         if self.modo == "register":
             self.fields["password_confirm"] = forms.CharField(
                 widget=forms.PasswordInput(),
@@ -53,6 +53,23 @@ class UsuarioForm(forms.ModelForm):
             self.fields["estado"].widget = forms.HiddenInput()
             self.fields["rol"].required = False
             self.fields["estado"].required = False
+        # ——————————————————————————————————————————
+        # EDICIÓN: restringir campos según rol
+        elif self.modo == "update" and self.current_user and self.instance:
+            is_admin = self.current_user.rol == 'admin'
+            editing_self = self.instance.id == self.current_user.id
+            if not is_admin and editing_self:
+                
+                protected_fields = [
+                    'rol', 'nombre', 'apellidos', 'estado',
+                    'tipo_documento', 'num_documento',
+                    'fecha_nacimiento', 'matricula', 'nivel'
+                ]
+                for field_name in protected_fields:
+                    if field_name in self.fields:
+                        self.fields[field_name].widget.attrs['readonly'] = True  # ⚠️ CAMBIO CLAVE
+                        
+
         # ——————————————————————————————————————————
 
         # Paso 2: si es POST, determinar rol y eliminar campos irrelevantes
