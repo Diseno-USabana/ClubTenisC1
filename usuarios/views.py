@@ -4,11 +4,14 @@ from django.views.generic import ListView, DetailView, UpdateView, DeleteView, C
 from django.views.generic.edit import FormView
 from django.contrib import messages
 from .models import Usuario, Categoria
+from pagos.models import Pago
 from .forms import UsuarioForm, RegistrationForm, CustomLoginForm
 from django.views import View
 from django.shortcuts import redirect, render
 from datetime import date
 from django.core.exceptions import PermissionDenied
+from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404
 
 from utils.role_mixins import AdminRequiredForListMixin, SoloPropioMixin
 
@@ -275,14 +278,10 @@ class RegistrationView(FormView):
         user = form.save(commit=False)
         user.rol = 'miembro'
         user.estado = 'activo'
-        # Debug: mostrar fecha de nacimiento recibida
+
         if user.fecha_nacimiento:
             today = date.today()
-            age = today.year - user.fecha_nacimiento.year  # Usamos solo el año
-            print("DEBUG: Fecha de nacimiento:", user.fecha_nacimiento)
-            print("DEBUG: Edad calculada:", age)
-
-            # Asignar la categoría según la edad
+            age = today.year - user.fecha_nacimiento.year
             if age < 6:
                 cat_name = "bola-roja"
             elif age < 10:
@@ -296,21 +295,35 @@ class RegistrationView(FormView):
             elif age <= 21:
                 cat_name = "sub-21"
             else:
-                # Adultos: se usa el valor del campo 'nivel'
                 cat_name = form.cleaned_data.get("nivel")
-            print("DEBUG: cat_name asignado:", cat_name)
-
-            # Obtener o crear la categoría
-            categoria, created = Categoria.objects.get_or_create(nombre=cat_name)
-            print("DEBUG: Categoria obtenida:", categoria, "Creada:", created)
+            categoria, _ = Categoria.objects.get_or_create(nombre=cat_name)
             user.id_categoria = categoria
-        else:
-            print("DEBUG: No se proporcionó fecha de nacimiento.")
-        user.set_password(form.cleaned_data['password'])
-        user.save()
-        print("DEBUG: ")
-        return super().form_valid(form)
 
+        user.set_password(form.cleaned_data['password'])
+        user.matricula = True
+        user.save()
+
+        # 🔐 IMPORTANTE: asignar `self.object` para que Django trate este form como exitoso
+        self.object = user
+
+        # ✅ Crear el pago
+        print("DEBUG: Usuario guardado con ID:", user.id)
+        if user.id:
+            Pago.objects.create(
+                usuario=user,
+                concepto='matricula',
+                fecha=date.today(),
+                monto=100000
+            )
+            print("DEBUG ✅ Pago creado para el usuario:", user.id)
+        else:
+            print("ERROR ❌ No se pudo crear el pago, user.id es None")
+
+        # ✅ Autologin
+        self.request.session['custom_user_id'] = user.id
+        messages.success(self.request, "¡Registro exitoso! Ya has iniciado sesión y se registró el pago de matrícula.")
+
+        return redirect(reverse('usuarios:detail', kwargs={'usuario_id': user.id}))
 
 class UsuarioPasswordUpdateView(SoloPropioMixin, View):
     def get(self, request, usuario_id):
