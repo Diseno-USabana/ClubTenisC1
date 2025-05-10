@@ -55,12 +55,22 @@
           {{ form.correo }}{{ form.correo.errors }}
         </p>
       </div>
-      
+
       <div class="campo" id="field-password" data-roles="admin,entrenador,miembro">
-        <p>{{ form.password.label_tag }}<br>
-          {{ form.password }}{{ form.password.errors }}
+        <p>
+          {{ form.password.label_tag }}<br>
+      
+          {# Si estamos en edición (usuario existe), siempre mostramos el fake #}
+          {% if usuario %}
+            <input type="text" id="fake_password" value="********" readonly
+                   onclick="window.location.href='{% url 'usuarios:change_password' usuario.id %}'"
+                   style="cursor: pointer; background-color: #f0f0f0; border: 1px solid #ccc; padding: 6px;">
+          {# Si estamos creando, renderizamos el campo real #}
+          {% else %}
+            {{ form.password }}{{ form.password.errors }}
+          {% endif %}
         </p>
-      </div>
+      </div>   
       
       <div class="campo" id="field-estado" data-roles="admin,entrenador,miembro">
         <p>{{ form.estado.label_tag }}<br>

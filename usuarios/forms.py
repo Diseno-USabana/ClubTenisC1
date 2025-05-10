@@ -57,6 +57,11 @@ class UsuarioForm(forms.ModelForm):
         # ——————————————————————————————————————————
         # EDICIÓN: restringir campos según rol
         elif self.modo == "update" and self.current_user and self.instance:
+            # — Ocultar el campo password en edición —
+            if "password" in self.fields:
+                # No forzar su edición aquí
+                self.fields["password"].required = False
+                self.fields["password"].widget = forms.HiddenInput()
             is_admin = self.current_user.rol == 'admin'
             editing_self = self.instance.id == self.current_user.id
             if not is_admin and editing_self:
@@ -70,6 +75,8 @@ class UsuarioForm(forms.ModelForm):
                         self.fields[campo].widget.attrs["style"] = "pointer-events: none; border: none; background: none;"
                         # ← insertamos esta línea:
                         self.fields[campo].required = False
+
+                
 
 
                 # Mostrar el valor actual de nivel para adultos
@@ -142,6 +149,7 @@ class UsuarioForm(forms.ModelForm):
         password = cleaned_data.get("password")
         estado = cleaned_data.get("estado")
 
+
         if not rol:
             self.add_error("rol", "El rol es obligatorio.")
         if not nombre:
@@ -150,8 +158,16 @@ class UsuarioForm(forms.ModelForm):
             self.add_error("apellidos", "Los apellidos son obligatorios.")
         if not correo:
             self.add_error("correo", "El correo es obligatorio.")
-        if not password:
-            self.add_error("password", "La contraseña es obligatoria.")
+        
+        if self.modo in ["register", "create"]:
+            if not password:
+                self.add_error("password", "La contraseña es obligatoria.")
+        elif self.modo == "update":
+            # Solo forzar si el campo sigue presente (puede haber sido ocultado)
+            if "password" in self.fields and self.fields["password"].required and not password:
+                self.add_error("password", "La contraseña es obligatoria.")
+
+
         if not estado:
             self.add_error("estado", "El estado es obligatorio.")
 

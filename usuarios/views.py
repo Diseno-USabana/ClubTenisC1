@@ -6,7 +6,7 @@ from django.contrib import messages
 from .models import Usuario, Categoria
 from .forms import UsuarioForm, RegistrationForm, CustomLoginForm
 from django.views import View
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from datetime import date
 from django.core.exceptions import PermissionDenied
 
@@ -52,6 +52,7 @@ class UsuarioCreateView(CreateView):
             context["action"] = "register"
         else:
             context["action"] = "create"
+            context["usuario"] = None
         return context
 
     def get_current_user(self, request):
@@ -308,3 +309,26 @@ class RegistrationView(FormView):
         user.save()
         print("DEBUG: ")
         return super().form_valid(form)
+
+
+class UsuarioPasswordUpdateView(SoloPropioMixin, View):
+    def get(self, request, usuario_id):
+        usuario = Usuario.objects.get(id=usuario_id)
+        return render(request, 'usuarios/cambiar_password.html', {'usuario': usuario})
+
+    def post(self, request, usuario_id):
+        usuario = Usuario.objects.get(id=usuario_id)
+        nueva_clave = request.POST.get("password")
+        confirmacion = request.POST.get("confirm_password")
+
+        if not nueva_clave or not confirmacion:
+            messages.error(request, "Debes completar ambos campos.")
+        elif nueva_clave != confirmacion:
+            messages.error(request, "Las contraseñas no coinciden.")
+        else:
+            usuario.set_password(nueva_clave)
+            usuario.save()
+            messages.success(request, "Contraseña actualizada correctamente.")
+            return redirect('usuarios:detail', usuario_id=usuario.id)
+
+        return render(request, 'usuarios/cambiar_password.html', {'usuario': usuario})
