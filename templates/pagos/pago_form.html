@@ -1,12 +1,14 @@
 {% extends "_base.html" %}
-{% block title %}{{ view.object|default:"Nuevo Pago" }}{% endblock %}
+{% block title %}Registrar Mensualidad{% endblock %}
 
 {% block content %}
-<h1>{{ view.object|default:"Nuevo Pago" }}</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Guardar</button>
-</form>
-<a href="{% url 'pagos:list' %}" class="btn btn-secondary mt-3">Cancelar</a>
+<h1>Registrar Mensualidad</h1>
+
+<div class="alert alert-info">
+    La mensualidad tiene un valor fijo de <strong>$170.000</strong> pesos colombianos. <br>
+</div>
+
+<a href="{% url 'pagos:registrar_mensualidad' %}" class="btn btn-success">
+    Registrar Mensualidad
+</a>
 {% endblock %}

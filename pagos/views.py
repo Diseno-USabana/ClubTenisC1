@@ -7,6 +7,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Pago
 from .forms import PagoForm
+from usuarios.models import Usuario
+
+
 
 class PagoListView(LoginRequiredMixin, ListView):
     model = Pago
@@ -38,9 +41,17 @@ class PagoDeleteView(LoginRequiredMixin, DeleteView):
     template_name = 'pagos/pago_confirm_delete.html'
     success_url = reverse_lazy('pagos:list')
 
+
+
 @login_required
 def registrar_mensualidad(request):
-    usuario = request.user
+    user = request.user
+    try:
+        usuario = Usuario.objects.get(id=user.id)  # Convertir correctamente
+    except Usuario.DoesNotExist:
+        messages.error(request, "No se encontró tu cuenta como usuario válido.")
+        return redirect('pagos:list')
+
     hoy = now().date()
     mes = hoy.month
     anio = hoy.year
