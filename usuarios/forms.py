@@ -3,6 +3,12 @@ from .models import Usuario
 from datetime import date
 
 
+TIPOS_DOCUMENTO = [
+    ("TI", "TI"),
+    ("CC", "CC"),
+    ("RC", "RC"),
+    ("CE", "CE"),
+]
 class UsuarioForm(forms.ModelForm):
     nivel = forms.ChoiceField(
         choices=[
@@ -53,6 +59,7 @@ class UsuarioForm(forms.ModelForm):
             self.fields["estado"].initial = "activo"
             self.fields["rol"].widget = forms.HiddenInput()
             self.fields["estado"].widget = forms.HiddenInput()
+            self.fields["tipo_documento"].initial = "CC"
             self.fields["rol"].required = False
             self.fields["estado"].required = False
         # ——————————————————————————————————————————
@@ -269,6 +276,13 @@ class RegistrationForm(forms.ModelForm):
         required=False,
         label="Nivel de juego"
     )
+    tipo_documento = forms.ChoiceField(
+        choices=TIPOS_DOCUMENTO,
+        required=True,
+        label="Tipo Doc",
+        widget=forms.Select(attrs={'required': 'required'})
+    )
+
     
     class Meta:
         model = Usuario
