@@ -1,6 +1,6 @@
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.urls import reverse_lazy
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.utils.timezone import now
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -8,8 +8,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Pago
 from .forms import PagoForm
 from usuarios.models import Usuario
-
-
 
 class PagoListView(LoginRequiredMixin, ListView):
     model = Pago
@@ -72,3 +70,18 @@ def registrar_mensualidad(request):
 
     messages.success(request, "¡Mensualidad registrada exitosamente!")
     return redirect('pagos:list')
+
+@login_required
+def vista_crear_pago(request):
+    if request.user.is_staff:
+        if request.method == "POST":
+            form = PagoForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Pago creado correctamente.")
+                return redirect('pagos:list')
+        else:
+            form = PagoForm()
+        return render(request, "pagos/pago_form_admin.html", {"form": form})
+    else:
+        return render(request, "pagos/pago_form.html")
