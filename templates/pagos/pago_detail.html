@@ -1,19 +1,13 @@
 {% extends "_base.html" %}
 {% block title %}Detalle del Pago{% endblock %}
-
 {% block content %}
 <h1>Detalle del Pago</h1>
 <ul class="list-group">
-    <li class="list-group-item"><strong>ID:</strong> {{ pago.id }}</li>
-    <li class="list-group-item"><strong>Usuario:</strong> {{ pago.usuario }}</li>
-    <li class="list-group-item"><strong>Concepto:</strong> {{ pago.concepto }}</li>
-    <li class="list-group-item"><strong>Fecha:</strong> {{ pago.fecha }}</li>
-    <li class="list-group-item"><strong>Monto:</strong> ${{ pago.monto|floatformat:0 }}</li>
+  <li class="list-group-item"><strong>ID:</strong> {{ pago.id }}</li>
+  <li class="list-group-item"><strong>Usuario:</strong> {{ pago.usuario }}</li>
+  <li class="list-group-item"><strong>Concepto:</strong> {{ pago.concepto }}</li>
+  <li class="list-group-item"><strong>Fecha:</strong> {{ pago.fecha }}</li>
+  <li class="list-group-item"><strong>Monto:</strong> ${{ pago.monto }}</li>
 </ul>
-
-{% if request.user.usuario.rol == 'admin' %}
-    <a href="{% url 'pagos:list' %}" class="btn btn-secondary mt-3">Volver</a>
-{% else %}
-    <a href="{% url 'pagos:mis_pagos' request.user.usuario.id %}" class="btn btn-secondary mt-3">Volver</a>
-{% endif %}
+<a href="{% url 'pagos:list' %}" class="btn btn-secondary mt-3">Volver</a>
 {% endblock %}

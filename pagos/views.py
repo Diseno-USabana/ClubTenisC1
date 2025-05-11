@@ -9,6 +9,7 @@ from utils.role_mixins import AdminRequiredForListMixin, SoloPropioMixin
 from .models import Pago
 from .forms import PagoForm
 from usuarios.models import Usuario
+from utils.role_mixins import UsuarioSessionMixin
 
 # Vista: lista de todos los pagos (solo admin)
 class PagoListView(AdminRequiredForListMixin, ListView):
@@ -30,33 +31,32 @@ class PagoListUsuarioView(SoloPropioMixin, ListView):
         return Pago.objects.filter(usuario=current_user).order_by('-fecha')
 
 # Vista: actualizar un pago existente
-class PagoUpdateView(LoginRequiredMixin, UpdateView):
+class PagoUpdateView(SoloPropioMixin, UpdateView):
     model = Pago
     form_class = PagoForm
-    template_name = 'pagos/pago_form.html'
+    template_name = 'pagos/pago_form_admin.html'
     success_url = reverse_lazy('pagos:list')
 
-# Vista: detalle de un pago
-class PagoDetailView(LoginRequiredMixin, DetailView):
+# Vista: detalle de un pago (solo lectura, no necesita form)
+class PagoDetailView(SoloPropioMixin, DetailView):
     model = Pago
     template_name = 'pagos/pago_detail.html'
     context_object_name = 'pago'
 
-# Vista: eliminar un pago
-class PagoDeleteView(LoginRequiredMixin, DeleteView):
+# Vista: eliminar un pago (no necesita fields si no usa form)
+class PagoDeleteView(SoloPropioMixin, DeleteView):
     model = Pago
     template_name = 'pagos/pago_confirm_delete.html'
     success_url = reverse_lazy('pagos:list')
 
+
 # Vista: registrar automáticamente la mensualidad del mes
-@login_required
 def registrar_mensualidad(request):
-    user = request.user
-    try:
-        usuario = Usuario.objects.get(id=user.id)
-    except Usuario.DoesNotExist:
-        messages.error(request, "No se encontró tu cuenta como usuario válido.")
-        return redirect('pagos:list')
+    usuario = UsuarioSessionMixin().get_current_user(request)
+
+    if not usuario:
+        messages.error(request, "Debes iniciar sesión para registrar tu mensualidad.")
+        return redirect('usuarios:login')
 
     hoy = now().date()
     mes = hoy.month
@@ -65,7 +65,7 @@ def registrar_mensualidad(request):
     ya_pagado = Pago.objects.filter(usuario=usuario, concepto="mensualidad", anio=anio, mes=mes).exists()
     if ya_pagado:
         messages.warning(request, "Ya has registrado tu mensualidad de este mes.")
-        return redirect('pagos:list')
+        return redirect('pagos:mis_pagos', usuario_id=usuario.id)
 
     Pago.objects.create(
         usuario=usuario,
@@ -77,12 +77,20 @@ def registrar_mensualidad(request):
     )
 
     messages.success(request, "¡Mensualidad registrada exitosamente!")
-    return redirect('pagos:list')
+    return redirect('pagos:mis_pagos', usuario_id=usuario.id)
+
 
 # Vista: crear pago desde formulario (rol-aware)
-@login_required
+
 def vista_crear_pago(request):
-    if request.user.is_staff:
+    usuario = UsuarioSessionMixin().get_current_user(request)
+
+    if not usuario:
+        messages.error(request, "Debes iniciar sesión para registrar un pago.")
+        return redirect('usuarios:login')
+
+    if usuario.rol == 'admin':
+        # Admin puede registrar pago para cualquier usuario desde el form completo
         if request.method == "POST":
             form = PagoForm(request.POST)
             if form.is_valid():
@@ -92,5 +100,17 @@ def vista_crear_pago(request):
         else:
             form = PagoForm()
         return render(request, "pagos/pago_form_admin.html", {"form": form})
+    
     else:
-        return render(request, "pagos/pago_form.html")
+        # Miembro solo registra su propio pago
+        if request.method == "POST":
+            form = PagoForm(request.POST)
+            if form.is_valid():
+                pago = form.save(commit=False)
+                pago.usuario = usuario
+                pago.save()
+                messages.success(request, "Pago creado correctamente.")
+                return redirect('pagos:mis_pagos', usuario_id=usuario.id)
+        else:
+            form = PagoForm()
+        return render(request, "pagos/pago_form.html", {"form": form})

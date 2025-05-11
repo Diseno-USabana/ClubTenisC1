@@ -8,10 +8,11 @@
 <form method="post">
     {% csrf_token %}
     <button type="submit" class="btn btn-danger">Confirmar eliminación</button>
-    {% if request.user.usuario.rol == 'admin' %}
-        <a href="{% url 'pagos:list' %}" class="btn btn-secondary">Cancelar</a>
-    {% else %}
+
+    {% if request.user.is_authenticated and request.user.usuario.rol == 'miembro' %}
         <a href="{% url 'pagos:mis_pagos' request.user.usuario.id %}" class="btn btn-secondary">Cancelar</a>
+    {% else %}
+        <a href="{% url 'pagos:list' %}" class="btn btn-secondary">Cancelar</a>
     {% endif %}
 </form>
 {% endblock %}
