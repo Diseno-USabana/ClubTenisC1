@@ -9,15 +9,27 @@
         <h1 class="text-center text-brown">👤 Información del Usuario</h1>
         <hr>
         <ul class="list-group list-group-flush">
-            <li class="list-group-item"><strong>📛 Nombre:</strong> {{ usuario.nombre }}</li>
-            <li class="list-group-item"><strong>📝 Apellidos:</strong> {{ usuario.apellidos }}</li>
-            <li class="list-group-item"><strong>📧 Correo:</strong> {{ usuario.correo }}</li>
-            <li class="list-group-item"><strong>📞 Teléfono:</strong> {{ usuario.telefono }}</li>
-            <li class="list-group-item"><strong>🆔 Tipo de Documento:</strong> {{ usuario.tipo_documento }}</li>
-            <li class="list-group-item"><strong>🔢 Número de Documento:</strong> {{ usuario.num_documento }}</li>
-            <li class="list-group-item"><strong>🎂 Fecha de Nacimiento:</strong> {{ usuario.fecha_nacimiento }}</li>
-            <li class="list-group-item"><strong>🔵 Estado:</strong> {{ usuario.estado }}</li>
-        </ul>
+            {% if usuario.rol in "admin entrenador miembro" %}
+                <li class="list-group-item"><strong>📛 Nombre:</strong> {{ usuario.nombre }}</li>
+                <li class="list-group-item"><strong>📝 Apellidos:</strong> {{ usuario.apellidos }}</li>
+                <li class="list-group-item"><strong>📧 Correo:</strong> {{ usuario.correo }}</li>
+            {% endif %}
+        
+            {% if usuario.rol in "entrenador miembro" %}
+                <li class="list-group-item"><strong>📞 Teléfono:</strong> {{ usuario.telefono }}</li>
+                <li class="list-group-item"><strong>🆔 Tipo de Documento:</strong> {{ usuario.tipo_documento }}</li>
+                <li class="list-group-item"><strong>🔢 Número de Documento:</strong> {{ usuario.num_documento }}</li>
+            {% endif %}
+        
+            {% if usuario.rol == "miembro" %}
+                <li class="list-group-item"><strong>🎂 Fecha de Nacimiento:</strong> {{ usuario.fecha_nacimiento }}</li>
+                <li class="list-group-item"><strong>🎾 Categoría:</strong> {{ usuario.id_categoria.nombre }}</li>
+            {% endif %}
+        
+            {% if usuario.rol in "admin entrenador miembro" %}
+                <li class="list-group-item"><strong>🔵 Estado:</strong> {{ usuario.estado }}</li>
+            {% endif %}
+        </ul>        
         
         <div class="text-center mt-4">
             <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">🔙 Regresar</a>
