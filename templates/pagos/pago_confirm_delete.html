@@ -4,9 +4,14 @@
 {% block content %}
 <h1>Eliminar Pago</h1>
 <p>¿Estás seguro de que deseas eliminar el pago de <strong>{{ pago.usuario }}</strong>?</p>
+
 <form method="post">
     {% csrf_token %}
     <button type="submit" class="btn btn-danger">Confirmar eliminación</button>
-    <a href="{% url 'pagos:list' %}" class="btn btn-secondary">Cancelar</a>
+    {% if request.user.usuario.rol == 'admin' %}
+        <a href="{% url 'pagos:list' %}" class="btn btn-secondary">Cancelar</a>
+    {% else %}
+        <a href="{% url 'pagos:mis_pagos' request.user.usuario.id %}" class="btn btn-secondary">Cancelar</a>
+    {% endif %}
 </form>
 {% endblock %}

@@ -16,6 +16,7 @@
             <a class="nav-link text-white {% if request.resolver_match.url_name == 'usuarios_list' %}active{% endif %}" href="{% url 'usuarios:list' %}">Nosotros</a>
             <a class="nav-link text-white {% if request.resolver_match.url_name == 'eventos_entrenamientos_list' %}active{% endif %}" href="{% url 'eventos:entrenamientos_list' %}">Entrenamientos</a>
             <a class="nav-link text-white {% if request.resolver_match.url_name == 'eventos_torneos_list' %}active{% endif %}" href="{% url 'eventos:torneos_list' %}">Torneos</a>
+
             {% if request.session.custom_user_id %}
                 <div class="user-menu-container">
                     <div class="user-button nav-link text-white" onclick="toggleMenu()">
@@ -29,8 +30,13 @@
                         {% endif %}
                     
                         <a href="{% url 'informes:list' %}" class="menu-item">📈 Estadísticas</a>
+
                         {% if current_user.rol != "entrenador" %}
-                            <a href="{% url 'pagos:list' %}" class="menu-item">💳 Pagos</a>
+                            {% if current_user.rol == "admin" %}
+                                <a href="{% url 'pagos:list' %}" class="menu-item">💳 Pagos</a>
+                            {% else %}
+                                <a href="{% url 'pagos:mis_pagos' current_user.id %}" class="menu-item">💳 Mis Pagos</a>
+                            {% endif %}
                         {% endif %}
              
                         <a href="{% url 'usuarios:logout' %}" class="menu-item logout">🚪 Cerrar sesión</a>
@@ -78,7 +84,7 @@
     .nav-link:hover { background-color: #4E3528 !important; }
     .container-fluid { width: 100%; }
     .user-menu-container { position: relative; display: flex; align-items: center; }
-    .user-button { cursor: pointer; padding: 10px 100px; display: flex; align-items: center; justify-content: center; white-space: nowrap;  }
+    .user-button { cursor: pointer; padding: 10px 100px; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
     .dropdown-menu {
         position: absolute;
         top: 100%;

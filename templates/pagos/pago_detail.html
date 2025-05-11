@@ -8,7 +8,12 @@
     <li class="list-group-item"><strong>Usuario:</strong> {{ pago.usuario }}</li>
     <li class="list-group-item"><strong>Concepto:</strong> {{ pago.concepto }}</li>
     <li class="list-group-item"><strong>Fecha:</strong> {{ pago.fecha }}</li>
-    <li class="list-group-item"><strong>Monto:</strong> ${{ pago.monto }}</li>
+    <li class="list-group-item"><strong>Monto:</strong> ${{ pago.monto|floatformat:0 }}</li>
 </ul>
-<a href="{% url 'pagos:list' %}" class="btn btn-secondary mt-3">Volver</a>
+
+{% if request.user.usuario.rol == 'admin' %}
+    <a href="{% url 'pagos:list' %}" class="btn btn-secondary mt-3">Volver</a>
+{% else %}
+    <a href="{% url 'pagos:mis_pagos' request.user.usuario.id %}" class="btn btn-secondary mt-3">Volver</a>
+{% endif %}
 {% endblock %}
