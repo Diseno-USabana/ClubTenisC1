@@ -1,0 +1,30 @@
+{% extends "_base.html" %}
+
+{% block content %}
+<h2>Mis Pagos</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Concepto</th>
+            <th>Monto</th>
+            <th>Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pago in pagos %}
+        <tr>
+            <td>{{ pago.fecha }}</td>
+            <td>{{ pago.concepto }}</td>
+            <td>${{ pago.monto|floatformat:0 }}</td>
+            <td>{{ pago.estado }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No tienes pagos registrados aún.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
