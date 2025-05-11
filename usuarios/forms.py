@@ -2,6 +2,7 @@ from django import forms
 from .models import Usuario
 from datetime import date
 
+
 class UsuarioForm(forms.ModelForm):
     nivel = forms.ChoiceField(
         choices=[
@@ -148,6 +149,7 @@ class UsuarioForm(forms.ModelForm):
         correo = cleaned_data.get("correo")
         password = cleaned_data.get("password")
         estado = cleaned_data.get("estado")
+        num_documento = cleaned_data.get("num_documento")
 
 
         if not rol:
@@ -166,6 +168,8 @@ class UsuarioForm(forms.ModelForm):
             # Solo forzar si el campo sigue presente (puede haber sido ocultado)
             if "password" in self.fields and self.fields["password"].required and not password:
                 self.add_error("password", "La contraseña es obligatoria.")
+        
+
 
 
         if not estado:
@@ -176,6 +180,7 @@ class UsuarioForm(forms.ModelForm):
             if password and password_confirm and password != password_confirm:
                 self.add_error("password_confirm", "Las contraseñas no coinciden.")
 
+        validar_documento_y_correo_unicos(self, correo, num_documento)
         # Validaciones específicas por rol
         if rol == 'admin':
             pass
@@ -256,15 +261,10 @@ class RegistrationForm(forms.ModelForm):
         cleaned_data = super().clean()
         # Conversión y validaciones comunes (como se hizo antes)
         correo = cleaned_data.get("correo")
-        if correo:
-            correo = correo.lower()
-            cleaned_data["correo"] = correo
-            if Usuario.objects.filter(correo=correo).exists():
-                self.add_error('correo', "Ya existe un usuario con ese correo")
         num_documento = cleaned_data.get("num_documento")
-        if num_documento:
-            if Usuario.objects.filter(num_documento=num_documento).exists():
-                self.add_error('num_documento', "Ya existe un usuario con ese documento")
+
+        validar_documento_y_correo_unicos(self, correo, num_documento)
+
         password = cleaned_data.get("password")
         password_confirm = cleaned_data.get("password_confirm")
         if password and password_confirm and password != password_confirm:
@@ -307,3 +307,19 @@ class CustomLoginForm(forms.Form):
             cleaned_data["user"] = user
         return cleaned_data
 
+
+def validar_documento_y_correo_unicos(form, correo, num_documento):
+    from usuarios.models import Usuario
+
+    # Verificación de correo
+    if correo and Usuario.objects.filter(correo=correo)\
+           .exclude(pk=getattr(form.instance, "pk", None)).exists():
+        form.add_error('correo', "Ya existe un usuario con ese correo.")
+        # alerta en non_field_errors
+        form.add_error(None, "alert:correo_duplicado")
+
+    # Verificación de documento
+    if num_documento and Usuario.objects.filter(num_documento=num_documento)\
+           .exclude(pk=getattr(form.instance, "pk", None)).exists():
+        form.add_error('num_documento', "Ya existe un usuario con ese documento.")
+        form.add_error(None, "alert:documento_duplicado")

@@ -17,7 +17,7 @@
           {% csrf_token %}
           <div class="form-group">
             <label for="id_correo">Correo</label>
-            <input type="email" name="correo" id="id_correo" required>
+            <input type="email" name="correo" id="id_correo" required value="{{ form.correo.value|default:'' }}">
           </div>
 
           <div class="form-group password-group">
@@ -25,6 +25,12 @@
             <input type="password" name="password" id="id_password" required>
             <span class="eye-icon">👁️</span>
           </div>
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
 
           <button type="submit" class="btn">Ingresar</button>
         </form>
@@ -45,11 +51,11 @@
           <div class="form-row">
             <div class="form-group">
               <label for="id_nombre">Nombre/s</label>
-              <input type="text" name="nombre" id="id_nombre" required>
+              <input type="text" name="nombre" id="id_nombre" required value="{{ form.nombre.value|default:'' }}">
             </div>
             <div class="form-group">
               <label for="id_apellidos">Apellido/s</label>
-              <input type="text" name="apellidos" id="id_apellidos" required>
+              <input type="text" name="apellidos" id="id_apellidos" required value="{{ form.apellidos.value|default:'' }}">
             </div>
           </div>
 
@@ -66,34 +72,34 @@
             </div>
             <div class="form-group">
               <label for="id_num_documento">Identificación</label>
-              <input type="text" name="num_documento" id="id_num_documento" required>
+              <input type="text" name="num_documento" id="id_num_documento" required value="{{ form.num_documento.value|default:'' }}">
             </div>
           </div>
 
           <div class="form-group">
             <label for="id_fecha_nacimiento">Fecha de nacimiento</label>
-            <input type="date" name="fecha_nacimiento" id="id_fecha_nacimiento" required placeholder="DD/MM/AAAA">
+            <input type="date" name="fecha_nacimiento" id="id_fecha_nacimiento" required value="{{ form.fecha_nacimiento.value|default:'' }}" placeholder="DD/MM/AAAA">
           </div>
 
           <div class="form-group">
             <label for="id_correo">Correo</label>
-            <input type="email" name="correo" id="id_correo" required>
+            <input type="email" name="correo" id="id_correo" required value="{{ form.correo.value|default:'' }}">
           </div>
 
           <div class="form-group">
             <label for="id_telefono">Teléfono</label>
-            <input type="tel" name="telefono" id="id_telefono" required>
+            <input type="tel" name="telefono" id="id_telefono" required value="{{ form.telefono.value|default:'' }}">
           </div>
 
           <div class="form-group password-group">
             <label for="id_password">Contraseña</label>
-            <input type="password" name="password" id="id_password" required>
+            <input type="password" name="password" id="id_password" required value="{{ form.password.value|default:'' }}">
             <span class="eye-icon">👁️</span>
           </div>
 
           <div class="form-group password-group">
             <label for="id_password_confirm">Confirmar contraseña</label>
-            <input type="password" name="password_confirm" id="id_password_confirm" required>
+            <input type="password" name="password_confirm" id="id_password_confirm" required value="{{ form.password_confirm.value|default:'' }}">
             <span class="eye-icon">👁️</span>
           </div>
 
@@ -101,7 +107,7 @@
           <div id="nivel-container" style="display: none;">
             <div class="form-group">
               <label for="id_nivel">Nivel de juego</label>
-              <select name="nivel" id="id_nivel" required>
+              <select name="nivel" id="id_nivel" required value="{{ form.nombre.value|default:'' }}">
                 <option value="">Seleccione...</option>
                 {% for value, label in form.nivel.field.choices %}
                   <option value="{{ value }}">{{ label }}</option>
@@ -110,10 +116,31 @@
             </div>
           </div>
 
-          <button type="submit" class="btn">Registrate</button>
+          <button type="submit" class="btn">💳 Pagar matrícula y registrarse</button>
           <div class="register-link">
             <p>¿Ya tienes una cuenta? <a href="{% url 'usuarios:login' %}">¡Ingresa Aquí!</a></p>
           </div>  
+
+          {% if form.num_documento.errors %}
+            {% for error in form.num_documento.errors %}
+              {% if "Ya existe un usuario con ese documento" in error %}
+                <script>
+                  alert("Ya existe un usuario con ese documento. Revisa la información o comunícate con el administrador.");
+                </script>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+
+          {% if form.correo.errors %}
+            {% for error in form.correo.errors %}
+              {% if "Ya existe un usuario con ese correo" in error %}
+                <script>
+                  alert("Ya existe un usuario con ese correo. Revisa la información o comunícate con el administrador.");
+                </script>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+
         </form>
       {% endif %}
     </div>
