@@ -68,3 +68,9 @@ class Usuario(models.Model):
     
     def check_password(self, raw_password):
         return check_password(raw_password, self.password)
+    
+    def save(self, *args, **kwargs):
+        if self.correo:
+            self.correo = self.correo.strip().lower()
+        super().save(*args, **kwargs)
+

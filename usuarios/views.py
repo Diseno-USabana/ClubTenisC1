@@ -161,6 +161,12 @@ class UsuarioUpdateView(SoloPropioMixin, UpdateView):
         kwargs['current_user'] = self.get_current_user(self.request)
         return kwargs
     
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        categoria = self.object.id_categoria
+        context["nombre_categoria"] = categoria.nombre if categoria else "Sin categoría"
+        return context
+
     def form_valid(self, form):
         current_user = self.get_current_user(self.request)
         user = form.instance  # la instancia a modificar
@@ -188,6 +194,40 @@ class UsuarioUpdateView(SoloPropioMixin, UpdateView):
             user.set_password(raw_pass)
         else:
             user.password = original.password
+
+        # Actualizar categoría según edad y nivel
+        if is_admin and form.cleaned_data.get("fecha_nacimiento") and form.cleaned_data.get("rol") == "miembro":
+            fecha_nueva = form.cleaned_data["fecha_nacimiento"]
+            edad = date.today().year - fecha_nueva.year
+
+            if edad > 21:
+                # Adulto → usa el nivel como categoría
+                nivel = form.cleaned_data.get("nivel")
+                if nivel:
+                    categoria, _ = Categoria.objects.get_or_create(nombre=nivel)
+                    user.id_categoria = categoria
+            else:
+                # Menor de 22 → respetar selección manual del admin (si difiere de la calculada)
+                categoria_form = form.cleaned_data.get("id_categoria")
+                if categoria_form:
+                    user.id_categoria = categoria_form
+                else:
+                    # fallback si no vino (debería ser raro)
+                    if edad < 6:
+                        cat_name = "bola-roja"
+                    elif edad < 10:
+                        cat_name = "bola-naranja"
+                    elif edad < 12:
+                        cat_name = "bola-verde"
+                    elif edad < 14:
+                        cat_name = "sub-14"
+                    elif edad < 16:
+                        cat_name = "sub-16"
+                    else:
+                        cat_name = "sub-21"
+                    categoria, _ = Categoria.objects.get_or_create(nombre=cat_name)
+                    user.id_categoria = categoria
+
 
         # --- Guardado definitivo ---
         user.save()

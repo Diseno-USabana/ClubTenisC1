@@ -90,8 +90,8 @@ class UsuarioForm(forms.ModelForm):
         # ——————————————————————————————————————————
 
         # Paso 2: si es POST, determinar rol y eliminar campos irrelevantes
-        if self.data.get('rol'):
-            role = self.data.get('rol')
+        role = self.data.get('rol') or self.initial.get('rol') or getattr(self.instance, 'rol', None)
+        if role:
             # Campos que siempre deben permanecer
             allowed = ['rol', 'nombre', 'apellidos', 'correo', 'password', 'estado']
             if role == 'entrenador':
@@ -99,6 +99,8 @@ class UsuarioForm(forms.ModelForm):
             elif role == 'miembro':
                 allowed += ['telefono', 'tipo_documento', 'num_documento',
                             'fecha_nacimiento', 'matricula', 'nivel']
+                if self.modo == "update":
+                    allowed.append("id_categoria")
             # Remover del form todo lo que no esté en allowed
             for field_name in list(self.fields.keys()):
                 if field_name not in allowed:
@@ -209,6 +211,34 @@ class UsuarioForm(forms.ModelForm):
         else:
             self.add_error("rol", "Rol no válido o no reconocido.")
 
+    # ————————————————
+        # 🚨 Detectar cambio de fecha para admins
+        # ————————————————
+        if self.modo == "update" and is_admin:
+            fecha_original = self.instance.fecha_nacimiento
+            fecha_nueva = cleaned_data.get("fecha_nacimiento")
+
+            if fecha_original and fecha_nueva and fecha_original != fecha_nueva:
+                edad_anterior = date.today().year - fecha_original.year
+                edad_nueva = date.today().year - fecha_nueva.year
+
+                if edad_anterior <= 21 and edad_nueva > 21:
+                    nivel = cleaned_data.get("nivel")
+                    if not nivel:
+                        self.add_error("nivel", "Debes seleccionar el nivel si el usuario ya es mayor de 21 años.")
+                    else:
+                        # Confirmación explícita (campo oculto en el form)
+                        confirm = self.data.get("confirmar_actualizacion_categoria", "")
+                        if confirm == "":
+                            # primera vez que se envía: pedimos confirmación
+                            self.add_error(None, "alert:confirmar_categoria")
+                        elif confirm == "no":
+                            # el usuario canceló: restauramos valores y no relanzamos el error
+                            cleaned_data['fecha_nacimiento'] = fecha_original
+                            cleaned_data['id_categoria'] = self.instance.id_categoria
+                        
+
+
         # Restaurar valores protegidos si no vienen en POST (modo update)
         if self.modo == "update" and self.instance and self.current_user:
             is_admin = self.current_user.rol == 'admin'
@@ -309,14 +339,16 @@ class CustomLoginForm(forms.Form):
 
 
 def validar_documento_y_correo_unicos(form, correo, num_documento):
-    from usuarios.models import Usuario
+    
 
-    # Verificación de correo
-    if correo and Usuario.objects.filter(correo=correo)\
-           .exclude(pk=getattr(form.instance, "pk", None)).exists():
-        form.add_error('correo', "Ya existe un usuario con ese correo.")
-        # alerta en non_field_errors
-        form.add_error(None, "alert:correo_duplicado")
+    # Verificación de correo (normalizado)
+    if correo:
+        correo_normalizado = correo.strip().lower()
+        if Usuario.objects.filter(correo__iexact=correo_normalizado)\
+               .exclude(pk=getattr(form.instance, "pk", None)).exists():
+            form.add_error('correo', "Ya existe un usuario con ese correo.")
+            form.add_error(None, "alert:correo_duplicado")
+
 
     # Verificación de documento
     if num_documento and Usuario.objects.filter(num_documento=num_documento)\

@@ -127,6 +127,19 @@
         {% endif %}
         </p>
       </div>
+
+      {% if usuario %}
+        <div class="campo" id="field-id_categoria" data-roles="miembro">
+          <p><label>Categoría actual:</label><br>
+          {% if form.id_categoria.field.widget.attrs.disabled %}
+            <span>{{ nombre_categoria }}</span>
+          {% else %}
+            {{ form.id_categoria }}{{ form.id_categoria.errors }}
+          {% endif %}
+          </p>
+        </div>
+      {% endif %}
+    
       
       <div class="campo" id="field-nivel" data-roles="miembro" style="display: none;">
         <p>{{ form.nivel.label_tag }}<br>
@@ -138,6 +151,7 @@
         </p>
       </div>
       
+      <input type="hidden" name="confirmar_actualizacion_categoria" id="confirmar_actualizacion_categoria" value="">
 
       <div class="text-center mt-3">
         <button type="submit" class="btn btn-brown">
