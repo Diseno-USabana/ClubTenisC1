@@ -339,14 +339,16 @@ class CustomLoginForm(forms.Form):
 
 
 def validar_documento_y_correo_unicos(form, correo, num_documento):
-    from usuarios.models import Usuario
+    
 
-    # Verificación de correo
-    if correo and Usuario.objects.filter(correo=correo)\
-           .exclude(pk=getattr(form.instance, "pk", None)).exists():
-        form.add_error('correo', "Ya existe un usuario con ese correo.")
-        # alerta en non_field_errors
-        form.add_error(None, "alert:correo_duplicado")
+    # Verificación de correo (normalizado)
+    if correo:
+        correo_normalizado = correo.strip().lower()
+        if Usuario.objects.filter(correo__iexact=correo_normalizado)\
+               .exclude(pk=getattr(form.instance, "pk", None)).exists():
+            form.add_error('correo', "Ya existe un usuario con ese correo.")
+            form.add_error(None, "alert:correo_duplicado")
+
 
     # Verificación de documento
     if num_documento and Usuario.objects.filter(num_documento=num_documento)\
