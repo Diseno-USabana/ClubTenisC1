@@ -1,31 +1,35 @@
-# pagos/views.py
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Pago
+from .forms import PagoForm
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class PagoListView(ListView):
+class PagoListView(LoginRequiredMixin, ListView):
     model = Pago
     template_name = 'pagos/pago_list.html'
     context_object_name = 'pagos'
 
-class PagoDetailView(DetailView):
+    def get_queryset(self):
+        return Pago.objects.all().order_by('-fecha')
+
+class PagoCreateView(LoginRequiredMixin, CreateView):
+    model = Pago
+    form_class = PagoForm
+    template_name = 'pagos/pago_form.html'
+    success_url = reverse_lazy('pagos:list')
+
+class PagoUpdateView(LoginRequiredMixin, UpdateView):
+    model = Pago
+    form_class = PagoForm
+    template_name = 'pagos/pago_form.html'
+    success_url = reverse_lazy('pagos:list')
+
+class PagoDetailView(LoginRequiredMixin, DetailView):
     model = Pago
     template_name = 'pagos/pago_detail.html'
     context_object_name = 'pago'
 
-class PagoCreateView(CreateView):
-    model = Pago
-    fields = ['estado', 'concepto', 'fecha', 'monto']
-    template_name = 'pagos/pago_form.html'
-    success_url = reverse_lazy('pagos:list')
-
-class PagoUpdateView(UpdateView):
-    model = Pago
-    fields = ['estado', 'concepto', 'fecha', 'monto']
-    template_name = 'pagos/pago_form.html'
-    success_url = reverse_lazy('pagos:list')
-
-class PagoDeleteView(DeleteView):
+class PagoDeleteView(LoginRequiredMixin, DeleteView):
     model = Pago
     template_name = 'pagos/pago_confirm_delete.html'
     success_url = reverse_lazy('pagos:list')
