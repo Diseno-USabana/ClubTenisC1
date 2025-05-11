@@ -23,7 +23,6 @@ class Pago(models.Model):
     mes = models.IntegerField(choices=MESES, blank=True, null=True)
 
     def clean(self):
-        # Solo mensualidad requiere mes y año
         if self.concepto == "mensualidad" and (not self.anio or not self.mes):
             raise ValidationError("Mensualidad requiere mes y año.")
         if self.concepto != "mensualidad" and (self.anio or self.mes):

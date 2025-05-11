@@ -1,6 +1,5 @@
 from django import forms
 from .models import Pago
-from datetime import date
 
 class PagoForm(forms.ModelForm):
     class Meta:
