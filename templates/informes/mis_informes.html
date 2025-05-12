@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Mis Informes</h1>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Año</th>
+      <th>Mes</th>
+      <th>Clases</th>
+      <th>Asistidas</th>
+      <th>Torneos</th>
+      <th>Acción</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for informe in informes %}
+      <tr>
+        <td>{{ informe.anio }}</td>
+        <td>{{ informe.mes }}</td>
+        <td>{{ informe.clases }}</td>
+        <td>{{ informe.clases_asistidas }}</td>
+        <td>{{ informe.torneos_asistidos }}</td>
+        <td>
+          <a href="{% url 'informes:detail' informe.pk %}" class="btn btn-sm btn-info">Ver</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="6">No tienes informes registrados.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

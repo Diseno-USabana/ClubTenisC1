@@ -70,28 +70,40 @@ def generar_informe_view(request):
     usuarios = Usuario.objects.filter(estado='activo', rol='miembro')
 
     for u in usuarios:
-        clases = Evento.objects.filter(tipo='entrenamiento',
-            asistencia_entrenamiento__usuario=u,
+        # Total de entrenamientos programados en los que el usuario está inscrito
+        clases = Evento.objects.filter(
+            tipo='entrenamiento',
+            asistencias_entrenamiento__usuario=u,
             fecha__year=anio,
             fecha__month=mes
         ).distinct().count()
 
+        # Total de asistencias marcadas como "presente"
         clases_asistidas = AsistenciaEntrenamiento.objects.filter(
             usuario=u,
             estado="presente",
             entrenamiento__fecha__year=anio,
-            entrenamiento__fecha__month=mes
+            entrenamiento__fecha__month=mes,
+            entrenamiento__tipo='entrenamiento'
         ).count()
 
+        # Total de torneos a los que asistió
         torneos_asistidos = AsistenciaTorneo.objects.filter(
             usuario=u,
             torneo__fecha__year=anio,
-            torneo__fecha__month=mes
+            torneo__fecha__month=mes,
+            torneo__tipo='torneo'
         ).count()
 
+        # Top 3 torneos con mejor puesto
         top_torneos = (
             AsistenciaTorneo.objects
-            .filter(usuario=u, torneo__fecha__year=anio, torneo__fecha__month=mes)
+            .filter(
+                usuario=u,
+                torneo__fecha__year=anio,
+                torneo__fecha__month=mes,
+                torneo__tipo='torneo'
+            )
             .order_by('puesto')[:3]
         )
 
