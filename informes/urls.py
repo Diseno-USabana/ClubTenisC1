@@ -1,5 +1,6 @@
 # informes/urls.py
 from django.urls import path
+from .views import generar_informe_view
 from .views import (
     InformeListView,
     InformeDetailView,
@@ -16,4 +17,5 @@ urlpatterns = [
     path('crear/', InformeCreateView.as_view(), name='create'),
     path('editar/<int:pk>/', InformeUpdateView.as_view(), name='update'),
     path('eliminar/<int:pk>/', InformeDeleteView.as_view(), name='delete'),
+    path('generar/', generar_informe_view, name='generar'),
 ]

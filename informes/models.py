@@ -1,6 +1,6 @@
 from django.db import models
-from usuarios.models import Usuario  # Asegúrate de tener la importación correcta de Usuario
-from eventos.models import AsistenciaTorneo  # Importa el modelo de Asistencia_Torneo si es necesario
+from usuarios.models import Usuario  
+from eventos.models import AsistenciaTorneo  
 
 class Informe(models.Model):
     OPCIONES_MES = (
