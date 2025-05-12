@@ -5,16 +5,19 @@ from django.contrib import messages
 from django.utils.timezone import now
 from .models import Informe
 from usuarios.models import Usuario
-from eventos.models import AsistenciaEntrenamiento, Entrenamiento, AsistenciaTorneo
+from eventos.models import AsistenciaEntrenamiento,  AsistenciaTorneo, Evento
 from utils.role_mixins import AdminEntrenadorRequiredMixin, SoloPropioMixin
-
 
 class InformeListView(AdminEntrenadorRequiredMixin, ListView):
     model = Informe
     template_name = 'informes/informe_list.html'
     context_object_name = 'informes'
 
-
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_id = self.request.session.get("custom_user_id")
+        context['current_user'] = Usuario.objects.get(id=user_id) if user_id else None
+        return context
 class InformeDetailView(SoloPropioMixin, DetailView):
     model = Informe
     template_name = 'informes/informe_detail.html'
@@ -67,7 +70,7 @@ def generar_informe_view(request):
     usuarios = Usuario.objects.filter(estado='activo', rol='miembro')
 
     for u in usuarios:
-        clases = Entrenamiento.objects.filter(
+        clases = Evento.objects.filter(tipo='entrenamiento',
             asistencia_entrenamiento__usuario=u,
             fecha__year=anio,
             fecha__month=mes
