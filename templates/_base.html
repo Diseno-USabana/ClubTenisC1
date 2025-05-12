@@ -28,8 +28,12 @@
                         {% if current_user.rol == "admin" %}
                             <a href="{% url 'usuarios:list' %}" class="menu-item">👥 Usuarios</a>
                         {% endif %}
-                    
-                        <a href="{% url 'informes:list' %}" class="menu-item">📈 Estadísticas</a>
+
+                        {% if current_user.rol == "admin" or current_user.rol == "entrenador" %}
+                            <a href="{% url 'informes:list' %}" class="menu-item">📈 Estadísticas</a>
+                        {% elif current_user.rol == "miembro" %}
+                            <a href="{% url 'informes:mis_informes' %}" class="menu-item">📈 Mis estadísticas</a>
+                        {% endif %}
 
                         {% if current_user.rol != "entrenador" %}
                             {% if current_user.rol == "admin" %}
@@ -76,33 +80,33 @@
         });
     </script>
 
-<style>
-    .bg-brown { background-color: #6F4E37; }
-    .nav { display: flex; justify-content: space-between; align-items: center; padding: 0px 20px; }
-    .nav-link { color: white; padding: 10px 15px; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
-    .nav-link.active { background-color: #5A3C2E !important; }
-    .nav-link:hover { background-color: #4E3528 !important; }
-    .container-fluid { width: 100%; }
-    .user-menu-container { position: relative; display: flex; align-items: center; }
-    .user-button { cursor: pointer; padding: 10px 100px; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
-    .dropdown-menu {
-        position: absolute;
-        top: 100%;
-        right: 0;
-        background-color: #6F4E37;
-        width: 310px;
-        border-radius: 12px;
-        padding: 30px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        display: flex;
-        flex-direction: column;
-    }
-    .menu-header { font-weight: bold; color: white; margin-bottom: 8px; text-align: center; }
-    .menu-item { padding: 30px; color: white; text-decoration: none; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
-    .menu-item:hover { background-color: #4E3528; }
-    .logout { color: red; }
-    .hidden { display: none; }
-</style>
+    <style>
+        .bg-brown { background-color: #6F4E37; }
+        .nav { display: flex; justify-content: space-between; align-items: center; padding: 0px 20px; }
+        .nav-link { color: white; padding: 10px 15px; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+        .nav-link.active { background-color: #5A3C2E !important; }
+        .nav-link:hover { background-color: #4E3528 !important; }
+        .container-fluid { width: 100%; }
+        .user-menu-container { position: relative; display: flex; align-items: center; }
+        .user-button { cursor: pointer; padding: 10px 100px; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #6F4E37;
+            width: 310px;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .menu-header { font-weight: bold; color: white; margin-bottom: 8px; text-align: center; }
+        .menu-item { padding: 30px; color: white; text-decoration: none; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .menu-item:hover { background-color: #4E3528; }
+        .logout { color: red; }
+        .hidden { display: none; }
+    </style>
 
 </body>
 </html>

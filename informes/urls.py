@@ -6,6 +6,7 @@ from .views import (
     InformeCreateView,
     InformeUpdateView,
     InformeDeleteView,
+    MisInformesListView,
     generar_informe_view,
 )
 
@@ -18,4 +19,5 @@ urlpatterns = [
     path('<int:pk>/editar/', InformeUpdateView.as_view(), name='update'),
     path('<int:pk>/eliminar/', InformeDeleteView.as_view(), name='delete'),
     path('generar/', generar_informe_view, name='generar'),
+    path('mis-informes/', MisInformesListView.as_view(), name='mis_informes'),
 ]

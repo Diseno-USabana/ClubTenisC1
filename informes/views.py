@@ -6,7 +6,7 @@ from django.utils.timezone import now
 from .models import Informe
 from usuarios.models import Usuario
 from eventos.models import AsistenciaEntrenamiento,  AsistenciaTorneo, Evento
-from utils.role_mixins import AdminEntrenadorRequiredMixin, SoloPropioMixin
+from utils.role_mixins import AdminEntrenadorRequiredMixin, SoloPropioMixin, UsuarioSessionMixin
 
 class InformeListView(AdminEntrenadorRequiredMixin, ListView):
     model = Informe
@@ -123,3 +123,17 @@ def generar_informe_view(request):
 
     messages.success(request, f"Informes generados para {mes}/{anio}.")
     return redirect('informes:list')
+
+class MisInformesListView(UsuarioSessionMixin, ListView):
+    model = Informe
+    template_name = 'informes/mis_informes.html'
+    context_object_name = 'informes'
+
+    def get_queryset(self):
+        current_user = self.get_current_user(self.request)
+        return Informe.objects.filter(usuario=current_user).order_by('-anio', '-mes')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_user'] = self.get_current_user(self.request)
+        return context
