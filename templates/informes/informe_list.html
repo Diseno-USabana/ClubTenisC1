@@ -32,11 +32,12 @@
         <td>{{ informe.clases_asistidas }}</td>
         <td>{{ informe.torneos_asistidos }}</td>
         <td>
-          <a href="{% url 'informes:detail' informe.pk %}" class="btn btn-sm btn-info">Ver</a>
-          
           {% if current_user.rol == "admin" or current_user.rol == "entrenador" %}
+            <a href="{% url 'informes:detail_admin' informe.pk %}" class="btn btn-sm btn-info">Ver</a>
             <a href="{% url 'informes:update' informe.pk %}" class="btn btn-sm btn-warning">Editar</a>
             <a href="{% url 'informes:delete' informe.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+          {% elif current_user.id == informe.usuario.id %}
+            <a href="{% url 'informes:detail_miembro' informe.pk %}" class="btn btn-sm btn-info">Ver</a>
           {% endif %}
         </td>
       </tr>

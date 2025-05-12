@@ -3,6 +3,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from usuarios.models import Usuario
 from pagos.models import Pago
+from informes.models import Informe 
 
 class UsuarioSessionMixin:
     """
@@ -42,7 +43,7 @@ class AdminRequiredForListMixin(UsuarioSessionMixin):
 
 class SoloPropioMixin(UsuarioSessionMixin):
     """
-    Permite acceso solo si el usuario es el dueño del objeto (por usuario_id o pk),
+    Permite acceso solo si el usuario es el dueño del objeto (Pago o Informe),
     o si es administrador.
     """
     def dispatch(self, request, *args, **kwargs):
@@ -50,16 +51,24 @@ class SoloPropioMixin(UsuarioSessionMixin):
         if not current_user:
             return redirect('usuarios:login')
 
-        # Intentar obtener el ID del usuario relacionado
         requested_id = None
         if 'usuario_id' in kwargs:
             requested_id = kwargs['usuario_id']
         elif 'pk' in kwargs:
+            # Intentar obtener usuario desde Pago
             try:
                 pago = Pago.objects.get(pk=kwargs['pk'])
                 requested_id = pago.usuario.id
             except Pago.DoesNotExist:
-                raise PermissionDenied("El recurso solicitado no existe.")
+                pass
+
+            # Intentar obtener usuario desde Informe si Pago falló
+            if requested_id is None:
+                try:
+                    informe = Informe.objects.get(pk=kwargs['pk'])
+                    requested_id = informe.usuario.id
+                except Informe.DoesNotExist:
+                    raise PermissionDenied("El recurso solicitado no existe.")
 
         if current_user.rol != 'admin' and current_user.id != requested_id:
             raise PermissionDenied("No tienes permiso para ver o modificar este recurso.")

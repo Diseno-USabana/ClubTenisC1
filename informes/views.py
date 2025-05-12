@@ -5,8 +5,9 @@ from django.contrib import messages
 from django.utils.timezone import now
 from .models import Informe
 from usuarios.models import Usuario
-from eventos.models import AsistenciaEntrenamiento,  AsistenciaTorneo, Evento
+from eventos.models import AsistenciaEntrenamiento, AsistenciaTorneo, Evento
 from utils.role_mixins import AdminEntrenadorRequiredMixin, SoloPropioMixin, UsuarioSessionMixin
+
 
 class InformeListView(AdminEntrenadorRequiredMixin, ListView):
     model = Informe
@@ -18,7 +19,15 @@ class InformeListView(AdminEntrenadorRequiredMixin, ListView):
         user_id = self.request.session.get("custom_user_id")
         context['current_user'] = Usuario.objects.get(id=user_id) if user_id else None
         return context
-class InformeDetailView(SoloPropioMixin, DetailView):
+
+
+class InformeDetailAdminView(AdminEntrenadorRequiredMixin, DetailView):
+    model = Informe
+    template_name = 'informes/informe_detail.html'
+    context_object_name = 'informe'
+
+
+class InformeDetailMiembroView(SoloPropioMixin, DetailView):
     model = Informe
     template_name = 'informes/informe_detail.html'
     context_object_name = 'informe'
@@ -27,7 +36,7 @@ class InformeDetailView(SoloPropioMixin, DetailView):
 class InformeCreateView(AdminEntrenadorRequiredMixin, CreateView):
     model = Informe
     fields = [
-        'usuario', 'anio', 'mes', 
+        'usuario', 'anio', 'mes',
         'clases', 'clases_asistidas', 'torneos_asistidos',
         'asistencia_torneo1', 'asistencia_torneo2', 'asistencia_torneo3'
     ]
@@ -38,7 +47,7 @@ class InformeCreateView(AdminEntrenadorRequiredMixin, CreateView):
 class InformeUpdateView(AdminEntrenadorRequiredMixin, UpdateView):
     model = Informe
     fields = [
-        'usuario', 'anio', 'mes', 
+        'usuario', 'anio', 'mes',
         'clases', 'clases_asistidas', 'torneos_asistidos',
         'asistencia_torneo1', 'asistencia_torneo2', 'asistencia_torneo3'
     ]
@@ -70,7 +79,6 @@ def generar_informe_view(request):
     usuarios = Usuario.objects.filter(estado='activo', rol='miembro')
 
     for u in usuarios:
-        # Total de entrenamientos programados en los que el usuario está inscrito
         clases = Evento.objects.filter(
             tipo='entrenamiento',
             asistencias_entrenamiento__usuario=u,
@@ -78,7 +86,6 @@ def generar_informe_view(request):
             fecha__month=mes
         ).distinct().count()
 
-        # Total de asistencias marcadas como "presente"
         clases_asistidas = AsistenciaEntrenamiento.objects.filter(
             usuario=u,
             estado="presente",
@@ -87,7 +94,6 @@ def generar_informe_view(request):
             entrenamiento__tipo='entrenamiento'
         ).count()
 
-        # Total de torneos a los que asistió
         torneos_asistidos = AsistenciaTorneo.objects.filter(
             usuario=u,
             torneo__fecha__year=anio,
@@ -95,7 +101,6 @@ def generar_informe_view(request):
             torneo__tipo='torneo'
         ).count()
 
-        # Top 3 torneos con mejor puesto
         top_torneos = (
             AsistenciaTorneo.objects
             .filter(
@@ -123,6 +128,7 @@ def generar_informe_view(request):
 
     messages.success(request, f"Informes generados para {mes}/{anio}.")
     return redirect('informes:list')
+
 
 class MisInformesListView(UsuarioSessionMixin, ListView):
     model = Informe

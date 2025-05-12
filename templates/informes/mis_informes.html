@@ -1,4 +1,5 @@
 {% extends '_base.html' %}
+
 {% block content %}
 <h1>Mis Informes</h1>
 
@@ -10,7 +11,7 @@
       <th>Clases</th>
       <th>Asistidas</th>
       <th>Torneos</th>
-      <th>Acción</th>
+      <th>Acciones</th>
     </tr>
   </thead>
   <tbody>
@@ -22,7 +23,7 @@
         <td>{{ informe.clases_asistidas }}</td>
         <td>{{ informe.torneos_asistidos }}</td>
         <td>
-          <a href="{% url 'informes:detail' informe.pk %}" class="btn btn-sm btn-info">Ver</a>
+          <a href="{% url 'informes:detail_miembro' informe.pk %}" class="btn btn-sm btn-info">Ver</a>
         </td>
       </tr>
     {% empty %}
