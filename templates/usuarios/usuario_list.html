@@ -13,17 +13,31 @@
         </div>
     {% endif %}
     
-    {% if usuarios %}
+    
         <form method="get" class="mb-3">
             <label for="rol">Filtrar por rol:</label>
             <select name="rol" id="rol" onchange="this.form.submit()">
-            <option value="">Todos</option>
-            <option value="admin" {% if request.GET.rol == 'admin' %}selected{% endif %}>Admin</option>
-            <option value="entrenador" {% if request.GET.rol == 'entrenador' %}selected{% endif %}>Entrenador</option>
-            <option value="miembro" {% if request.GET.rol == 'miembro' %}selected{% endif %}>Miembro</option>
+              <option value="">Todos</option>
+              <option value="admin"       {% if request.GET.rol == 'admin' %}selected{% endif %}>Admin</option>
+              <option value="entrenador"  {% if request.GET.rol == 'entrenador' %}selected{% endif %}>Entrenador</option>
+              <option value="miembro"     {% if request.GET.rol == 'miembro' %}selected{% endif %}>Miembro</option>
             </select>
+
+            {# sólo si el rol escogido es miembro, mostramos el filtro de categorías #}
+            {% if request.GET.rol == 'miembro' %}
+              <label for="categoria" class="ms-3">Filtrar por categoría:</label>
+              <select name="categoria" id="categoria" onchange="this.form.submit()">
+                <option value="">Todas</option>
+                {% for cat in categorias %}
+                  <option value="{{ cat.id }}" {% if cat.id|stringformat:"s" == selected_categoria %}selected{% endif %}>
+                    {{ cat.nombre }}
+                  </option>
+                {% endfor %}
+              </select>
+            {% endif %}
         </form>
-      
+
+    {% if usuarios %}
         <div class="row d-flex justify-content-center">
             {% for usuario in usuarios %}
                 <div class="col-md-4 mb-3">
