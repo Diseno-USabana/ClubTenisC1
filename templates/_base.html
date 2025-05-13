@@ -174,7 +174,7 @@
 <body class="d-flex flex-column min-vh-100 {% if request.resolver_match.url_name == 'login' or request.resolver_match.url_name == 'register' %}login-page{% endif %}">
 
 
-    {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'user' and request.resolver_match.url_name != 'create' and request.resolver_match.url_name != 'edit' and request.resolver_match.url_name != 'detail' %}
+    {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' %}
 
     <header>
         <nav class="navbar navbar-expand-lg">

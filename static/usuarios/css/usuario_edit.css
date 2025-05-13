@@ -1,50 +1,110 @@
-/* Estilo básico para el formulario y botones */
-.container {
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+/* WRAPPER PRINCIPAL PARA AISLAMIENTO TOTAL */
+.usuario-edit-wrapper {
+    padding-top: 40px;
 }
 
-h1 {
+/* CONTENEDOR DEL FORMULARIO */
+.usuario-edit-wrapper .form-container {
+    max-width: 700px;
+    margin: 0 auto;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    padding: 30px;
+}
+
+/* TÍTULO */
+.usuario-edit-wrapper h1 {
+    color: #6F4E37;
+    text-align: center;
+    margin-bottom: 24px;
+    font-weight: bold;
+}
+
+/* GRUPOS DE FORMULARIO */
+.usuario-edit-wrapper .campo {
+    margin-bottom: 16px;
+}
+
+.usuario-edit-wrapper label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
     color: #333;
+}
+
+/* INPUTS, SELECTS */
+.usuario-edit-wrapper input,
+.usuario-edit-wrapper select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    background-color: #fff;
+}
+
+/* BOTONES */
+.usuario-edit-wrapper .btn-brown {
+    background-color: #6F4E37;
+    color: white;
+    border: 2px solid #5A3C2E;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.usuario-edit-wrapper .btn-brown:hover {
+    background-color: #5A3C2E;
+}
+
+.usuario-edit-wrapper .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 6px;
+    margin-left: 10px;
+    text-decoration: none;
+    display: inline-block;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.usuario-edit-wrapper .btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* CAMPO DE CONTRASEÑA FALSO */
+.usuario-edit-wrapper #fake_password {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+
+/* TEXTO Y COLORES PERSONALIZADOS */
+.usuario-edit-wrapper .text-brown {
+    color: #6F4E37;
+}
+
+.usuario-edit-wrapper .bg-light {
+    background-color: #f8f9fa;
+}
+
+/* REMUEVE POSIBLES CONFLICTOS CON CLASES BOOTSTRAP */
+.usuario-edit-wrapper .card,
+.usuario-edit-wrapper .container,
+.usuario-edit-wrapper .text-center {
+    all: unset;
+}
+
+/* CENTRALIZADO MANUAL */
+.usuario-edit-wrapper .text-center {
     text-align: center;
 }
-
-form p {
-    margin-bottom: 10px;
-}
-
-input, select {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    box-sizing: border-box;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.btn {
-    padding: 10px 20px;
-    margin-top: 10px;
-    cursor: pointer;
-    border: none;
-    border-radius: 4px;
-    color: #fff;
-    font-size: 16px;
-}
-
-.btn-primary {
-    background-color: #007bff;
-}
-
-.btn-secondary {
-    background-color: #6c757d;
-}
-
-.btn:hover {
-    opacity: 0.9;
-}
-

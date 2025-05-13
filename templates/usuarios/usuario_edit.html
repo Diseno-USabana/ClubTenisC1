@@ -2,15 +2,19 @@
 {% extends '_base.html' %}
 {% load static %}
 
-{% block content %}
+{% block extra_css %}
 <link rel="stylesheet" href="{% static 'usuarios/css/usuario_edit.css' %}">
+{% endblock %}
 
-<div class="container mt-5">
-  <div class="card shadow-sm p-4 bg-light rounded">
-    <h1 class="text-center text-brown">
+{% block content %}
+<div class="usuario-edit-wrapper">
+  <div class="form-container">
+
+    <h1 class="text-brown">
       {% if usuario %}✏️ Editar Usuario{% else %}🆕 Crear Usuario{% endif %}
     </h1>
     <hr>
+
     <form method="post" id="usuarioForm" novalidate>
       {% csrf_token %}
 
@@ -29,118 +33,73 @@
         {{ form.rol }}
       {% endif %}
 
-      {# Campos individuales con visibilidad controlada por data-roles #}
+      {# Campos visibles por rol #}
       <div class="campo" id="field-nombre" data-roles="admin,entrenador,miembro">
-        <p>{{ form.nombre.label_tag }}<br>
-        {% if form.nombre.field.widget.attrs.disabled %}
-          <span>{{ form.nombre.value }}</span>
-        {% else %}
-          {{ form.nombre }}{{ form.nombre.errors }}
-        {% endif %}
-        </p>
+        <label>{{ form.nombre.label }}</label>
+        {{ form.nombre }}{{ form.nombre.errors }}
       </div>
-      
+
       <div class="campo" id="field-apellidos" data-roles="admin,entrenador,miembro">
-        <p>{{ form.apellidos.label_tag }}<br>
-        {% if form.apellidos.field.widget.attrs.disabled %}
-          <span>{{ form.apellidos.value }}</span>
-        {% else %}
-          {{ form.apellidos }}{{ form.apellidos.errors }}
-        {% endif %}
-        </p>
+        <label>{{ form.apellidos.label }}</label>
+        {{ form.apellidos }}{{ form.apellidos.errors }}
       </div>
-      
+
       <div class="campo" id="field-correo" data-roles="admin,entrenador,miembro">
-        <p>{{ form.correo.label_tag }}<br>
-          {{ form.correo }}{{ form.correo.errors }}
-        </p>
+        <label>{{ form.correo.label }}</label>
+        {{ form.correo }}{{ form.correo.errors }}
       </div>
 
       <div class="campo" id="field-password" data-roles="admin,entrenador,miembro">
-        <p>
-          {{ form.password.label_tag }}<br>
-      
-          {# Si estamos en edición (usuario existe), siempre mostramos el fake #}
-          {% if usuario %}
-            <input type="text" id="fake_password" value="********" readonly
-                   onclick="window.location.href='{% url 'usuarios:change_password' usuario.id %}'"
-                   style="cursor: pointer; background-color: #f0f0f0; border: 1px solid #ccc; padding: 6px;">
-          {# Si estamos creando, renderizamos el campo real #}
-          {% else %}
-            {{ form.password }}{{ form.password.errors }}
-          {% endif %}
-        </p>
-      </div>   
-      
+        <label>{{ form.password.label }}</label>
+        {% if usuario %}
+        <input type="text" id="fake_password" value="********" readonly
+               onclick="window.location.href='{% url 'usuarios:change_password' usuario.id %}'">
+        {% else %}
+        {{ form.password }}{{ form.password.errors }}
+        {% endif %}
+      </div>
+
       <div class="campo" id="field-estado" data-roles="admin,entrenador,miembro">
-        <p>{{ form.estado.label_tag }}<br>
-        {% if form.estado.field.widget.attrs.disabled %}
-          <span>{{ form.estado.value }}</span>
-        {% else %}
-          {{ form.estado }}{{ form.estado.errors }}
-        {% endif %}
-        </p>
+        <label>{{ form.estado.label }}</label>
+        {{ form.estado }}{{ form.estado.errors }}
       </div>
-      
+
       <div class="campo" id="field-telefono" data-roles="entrenador,miembro">
-        <p>{{ form.telefono.label_tag }}<br>
-          {{ form.telefono }}{{ form.telefono.errors }}
-        </p>
+        <label>{{ form.telefono.label }}</label>
+        {{ form.telefono }}{{ form.telefono.errors }}
       </div>
-      
+
       <div class="campo" id="field-tipo_documento" data-roles="entrenador,miembro">
-        <p>{{ form.tipo_documento.label_tag }}<br>
-        {% if form.tipo_documento.field.widget.attrs.disabled %}
-          <span>{{ form.tipo_documento.value }}</span>
-        {% else %}
-          {{ form.tipo_documento }}{{ form.tipo_documento.errors }}
-        {% endif %}
-        </p>
+        <label>{{ form.tipo_documento.label }}</label>
+        {{ form.tipo_documento }}{{ form.tipo_documento.errors }}
       </div>
-      
+
       <div class="campo" id="field-num_documento" data-roles="entrenador,miembro">
-        <p>{{ form.num_documento.label_tag }}<br>
-        {% if form.num_documento.field.widget.attrs.disabled %}
-          <span>{{ form.num_documento.value }}</span>
-        {% else %}
-          {{ form.num_documento }}{{ form.num_documento.errors }}
-        {% endif %}
-        </p>
+        <label>{{ form.num_documento.label }}</label>
+        {{ form.num_documento }}{{ form.num_documento.errors }}
       </div>
-      
+
       <div class="campo" id="field-fecha_nacimiento" data-roles="miembro">
-        <p>{{ form.fecha_nacimiento.label_tag }}<br>
-        {% if form.fecha_nacimiento.field.widget.attrs.disabled %}
-          <span>{{ form.fecha_nacimiento.value }}</span>
-        {% else %}
-          {{ form.fecha_nacimiento }}{{ form.fecha_nacimiento.errors }}
-        {% endif %}
-        </p>
+        <label>{{ form.fecha_nacimiento.label }}</label>
+        {{ form.fecha_nacimiento }}{{ form.fecha_nacimiento.errors }}
       </div>
-      
+
       <div class="campo" id="field-matricula" data-roles="miembro">
-        <p>{{ form.matricula.label_tag }}<br>
-        {% if form.matricula.field.widget.attrs.disabled %}
-          <span>{% if form.matricula.value %}Sí{% else %}No{% endif %}</span>
-        {% else %}
-          {{ form.matricula }}{{ form.matricula.errors }}
-        {% endif %}
-        </p>
+        <label>{{ form.matricula.label }}</label>
+        {{ form.matricula }}{{ form.matricula.errors }}
       </div>
 
       {% if usuario %}
-        <div class="campo" id="field-id_categoria" data-roles="miembro">
-          <p><label>Categoría actual:</label><br>
-          {% if form.id_categoria.field.widget.attrs.disabled %}
-            <span>{{ nombre_categoria }}</span>
-          {% else %}
-            {{ form.id_categoria }}{{ form.id_categoria.errors }}
-          {% endif %}
-          </p>
-        </div>
+      <div class="campo" id="field-id_categoria" data-roles="miembro">
+        <label>Categoría actual:</label>
+        {% if form.id_categoria.field.widget.attrs.disabled %}
+          <span>{{ nombre_categoria }}</span>
+        {% else %}
+          {{ form.id_categoria }}{{ form.id_categoria.errors }}
+        {% endif %}
+      </div>
       {% endif %}
-    
-      
+
       <div class="campo" id="field-nivel" data-roles="miembro" style="display: none;">
         <p>{{ form.nivel.label_tag }}<br>
         {% if form.nivel.field.widget.attrs.disabled %}
@@ -168,11 +127,4 @@
 </div>
 
 <script src="{% static 'usuarios/js/usuario_edit.js' %}"></script>
-<style>
-  .text-brown { color: #6F4E37; }
-  .bg-light { background-color: #f8f9fa; }
-  .btn-brown { background-color: #6F4E37; color: white; border: 2px solid #5A3C2E; padding: 10px 20px; }
-  .btn-brown:hover { background-color: #5A3C2E; }
-  .card { border-radius: 12px; }
-</style>
 {% endblock %}
