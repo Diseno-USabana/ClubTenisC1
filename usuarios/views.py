@@ -112,9 +112,10 @@ class UsuarioListView(AdminRequiredForListMixin, ListView):
     context_object_name = 'usuarios'
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        estado = self.request.GET.get('estado')
-        rol = self.request.GET.get('rol')
+        qs        = super().get_queryset()
+        estado    = self.request.GET.get('estado')
+        rol       = self.request.GET.get('rol')
+        categoria = self.request.GET.get('categoria')
 
         if estado:
             estado_filtrado = 'activo' if estado in ['inscrito', 'matriculado'] else estado
@@ -122,17 +123,27 @@ class UsuarioListView(AdminRequiredForListMixin, ListView):
         
         if rol:
             qs = qs.filter(rol=rol)
-        
+            # Si filtra por miembro y hay categoría, también la aplicamos
+            if rol == 'miembro' and categoria:
+                qs = qs.filter(id_categoria__id=categoria)
+
         return qs
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         current_user = self.get_current_user(self.request)
         if current_user:
-            context['can_create'] = (current_user.rol == 'admin')
-            # Por ejemplo, puedes pasar también el rol en el contexto
+            context['can_create']  = (current_user.rol == 'admin')
             context['current_role'] = current_user.rol
+
+        # si se está filtrando por miembro, enviamos todas las categorías
+        if self.request.GET.get('rol') == 'miembro':
+            from .models import Categoria
+            context['categorias'] = Categoria.objects.all()
+            context['selected_categoria'] = self.request.GET.get('categoria', '')
         return context
+
 
 class UsuarioDetailView(SoloPropioMixin, DetailView):
     model = Usuario
