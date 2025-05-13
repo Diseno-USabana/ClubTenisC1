@@ -35,7 +35,7 @@
                     </form>
                 {% else %}
                     <hr>
-                    <h3 class="text-brown">💳 Pago Simbólico</h3>
+                    <h3 class="text-brown">💳 Pago</h3>
                     <p>Para inscribirte al torneo, debes realizar un pago de <strong>{{ evento.costo }}</strong></p>
                     <form action="{% url 'eventos:inscribirse_torneo' evento.id %}" method="post">
                         {% csrf_token %}
