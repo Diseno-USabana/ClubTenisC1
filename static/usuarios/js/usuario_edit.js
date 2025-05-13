@@ -123,4 +123,102 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     setTimeout(updateFieldsVisibility, 0);
+
+    // ---------------------------------------------
+    // VALIDACIONES EN CREACIÓN (MODO ADMIN)
+    // ---------------------------------------------
+    const form = document.getElementById("usuarioForm");
+    const isCreateMode = !window.location.pathname.includes("/edit/");
+
+    if (form && isCreateMode) {
+        form.addEventListener("submit", function (e) {
+        const rol = document.getElementById("id_rol")?.value;
+        const nombre = document.getElementById("id_nombre")?.value.trim();
+        const apellidos = document.getElementById("id_apellidos")?.value.trim();
+        const correo = document.getElementById("id_correo")?.value.trim();
+        const telefono = document.getElementById("id_telefono")?.value.trim();
+        const tipoDocumento = document.getElementById("id_tipo_documento")?.value;
+        const numDocumento = document.getElementById("id_num_documento")?.value.trim();
+        const fechaNacimiento = document.getElementById("id_fecha_nacimiento")?.value;
+        const password = document.getElementById("id_password")?.value;
+        const nivel = document.getElementById("id_nivel")?.value;
+
+        const isMiembro = rol === "miembro";
+        const isEntrenador = rol === "entrenador";
+
+        // Validar campos obligatorios
+        if (!nombre || !apellidos || !correo || !telefono || !password) {
+            e.preventDefault();
+            alert("Por favor, complete todos los campos obligatorios.");
+            return false;
+        }
+
+        // VALIDAR NOMBRE: Solo letras, espacios y acentos
+        const nyaPattern = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/;
+        if (!nyaPattern.test(nombre)) {
+            e.preventDefault();
+            alert("El nombre solo puede contener letras y espacios.");
+            return false;
+        }
+        if (!nyaPattern.test(apellidos)) {
+            e.preventDefault();
+            alert("Los apellidos solo pueden contener letras y espacios.");
+            return false;
+        }
+
+        // Validar email
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(correo)) {
+            e.preventDefault();
+            alert("Ingrese un correo electrónico válido.");
+            return false;
+        }
+
+        // Validar teléfono y documento
+        const numberPattern = /^[0-9]+$/;
+        if (!numberPattern.test(telefono)) {
+            e.preventDefault();
+            alert("El teléfono debe contener solo números.");
+            return false;
+        }
+
+        if ((isMiembro || isEntrenador) && (!tipoDocumento || !numDocumento)) {
+            e.preventDefault();
+            alert("Debe ingresar tipo y número de documento.");
+            return false;
+        }
+
+        if ((isMiembro || isEntrenador) && !numberPattern.test(numDocumento)) {
+            e.preventDefault();
+            alert("El número de documento debe contener solo números.");
+            return false;
+        }
+
+        if (isMiembro) {
+            if (!fechaNacimiento) {
+                e.preventDefault();
+                alert("Debe ingresar la fecha de nacimiento.");
+                return false;
+            }
+
+            const birthYear = parseInt(fechaNacimiento.split("-")[0], 10);
+            const currentYear = new Date().getFullYear();
+            const edad = currentYear - birthYear;
+
+            if (isNaN(edad) || edad < 5 || edad > 116) {
+                e.preventDefault();
+                alert("La edad debe estar entre 5 y 116 años.");
+                return false;
+            }
+
+            if (edad > 21 && !nivel) {
+                e.preventDefault();
+                alert("Debe seleccionar el nivel de juego para mayores de 21 años.");
+                return false;
+            }
+        }
+    });
+
+    }
+
 });
