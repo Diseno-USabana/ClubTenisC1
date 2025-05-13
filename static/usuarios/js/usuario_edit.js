@@ -133,23 +133,30 @@ document.addEventListener("DOMContentLoaded", function () {
     if (form && isCreateMode) {
         form.addEventListener("submit", function (e) {
         const rol = document.getElementById("id_rol")?.value;
+
+        // Siempre requeridos
         const nombre = document.getElementById("id_nombre")?.value.trim();
         const apellidos = document.getElementById("id_apellidos")?.value.trim();
         const correo = document.getElementById("id_correo")?.value.trim();
         const telefono = document.getElementById("id_telefono")?.value.trim();
+        const password = document.getElementById("id_password")?.value;
+
+        // Solo para miembro o entrenador
         const tipoDocumento = document.getElementById("id_tipo_documento")?.value;
         const numDocumento = document.getElementById("id_num_documento")?.value.trim();
+
+        // Solo para miembro
         const fechaNacimiento = document.getElementById("id_fecha_nacimiento")?.value;
-        const password = document.getElementById("id_password")?.value;
         const nivel = document.getElementById("id_nivel")?.value;
 
         const isMiembro = rol === "miembro";
         const isEntrenador = rol === "entrenador";
+        const isAdmin = rol === "admin";
 
-        // Validar campos obligatorios
-        if (!nombre || !apellidos || !correo || !telefono || !password) {
+        // Validar campos comunes
+        if (!nombre || !apellidos || !correo || !password) {
             e.preventDefault();
-            alert("Por favor, complete todos los campos obligatorios.");
+            alert("Por favor, complete los campos obligatorios.");
             return false;
         }
 
@@ -166,7 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return false;
         }
 
-        // Validar email
+        // Validar correo
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(correo)) {
             e.preventDefault();
@@ -174,26 +181,39 @@ document.addEventListener("DOMContentLoaded", function () {
             return false;
         }
 
-        // Validar teléfono y documento
-        const numberPattern = /^[0-9]+$/;
-        if (!numberPattern.test(telefono)) {
-            e.preventDefault();
-            alert("El teléfono debe contener solo números.");
-            return false;
+
+        // ───────── Validaciones adicionales para ENTRENADOR o MIEMBRO ─────────
+        if (isMiembro || isEntrenador) {
+
+            // Teléfono obligatorio y numérico
+            if (!telefono) {
+                e.preventDefault();
+                alert("El teléfono es obligatorio para entrenadores y miembros.");
+                return false;
+            }
+            
+            const numberPattern = /^[0-9]+$/;
+            if (!numberPattern.test(telefono)) {
+                e.preventDefault();
+                alert("El teléfono debe contener solo números.");
+                return false;
+            }
+
+            // Documento obligatorio y numérico
+            if (!tipoDocumento || !numDocumento) {
+                e.preventDefault();
+                alert("Debe completar tipo y número de documento.");
+                return false;
+            }
+            if (!numberPattern.test(numDocumento)) {
+                e.preventDefault();
+                alert("El número de documento debe contener solo números.");
+                return false;
+            }
         }
 
-        if ((isMiembro || isEntrenador) && (!tipoDocumento || !numDocumento)) {
-            e.preventDefault();
-            alert("Debe ingresar tipo y número de documento.");
-            return false;
-        }
 
-        if ((isMiembro || isEntrenador) && !numberPattern.test(numDocumento)) {
-            e.preventDefault();
-            alert("El número de documento debe contener solo números.");
-            return false;
-        }
-
+        // Validaciones específicas para miembro
         if (isMiembro) {
             if (!fechaNacimiento) {
                 e.preventDefault();
@@ -218,6 +238,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     });
+
 
     }
 
