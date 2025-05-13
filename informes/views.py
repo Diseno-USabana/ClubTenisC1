@@ -16,12 +16,30 @@ class InformeListView(AdminEntrenadorRequiredMixin, ListView):
     template_name = 'informes/informe_list.html'
     context_object_name = 'informes'
 
+    def get_queryset(self):
+        qs = Informe.objects.all().order_by('-anio', '-mes')
+        anio = self.request.GET.get('anio')
+        mes = self.request.GET.get('mes')
+        usuario_id = self.request.GET.get('usuario')
+
+        if anio:
+            qs = qs.filter(anio=anio)
+        if mes:
+            qs = qs.filter(mes=mes)
+        if usuario_id:
+            qs = qs.filter(usuario_id=usuario_id)
+
+        return qs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_id = self.request.session.get("custom_user_id")
-        context['current_user'] = Usuario.objects.get(id=user_id) if user_id else None
+        context['usuarios'] = Usuario.objects.filter(estado='activo', rol='miembro')
+        context['filtros'] = {
+            'anio': self.request.GET.get('anio', ''),
+            'mes': self.request.GET.get('mes', ''),
+            'usuario': self.request.GET.get('usuario', '')
+        }
         return context
-
 
 class InformeDetailAdminView(AdminEntrenadorRequiredMixin, DetailView):
     model = Informe

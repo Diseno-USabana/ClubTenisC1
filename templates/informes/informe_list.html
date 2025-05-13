@@ -8,6 +8,22 @@
     <a href="{% url 'informes:create' %}" class="btn btn-primary">Crear Informe Manual</a>
     <a href="{% url 'informes:generar' %}" class="btn btn-success">Generar Informes del Mes</a>
   </div>
+
+  <!-- Formulario de Filtro -->
+  <form method="get" class="form-inline mb-3">
+    <input type="number" name="anio" placeholder="Año" value="{{ filtros.anio }}" class="form-control mr-2">
+    <input type="number" name="mes" placeholder="Mes" value="{{ filtros.mes }}" class="form-control mr-2">
+    <select name="usuario" class="form-control mr-2">
+      <option value="">-- Todos los usuarios --</option>
+      {% for u in usuarios %}
+        <option value="{{ u.id }}" {% if filtros.usuario == u.id|stringformat:"s" %}selected{% endif %}>
+          {{ u.nombres }} {{ u.apellidos }}
+        </option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">Filtrar</button>
+    <a href="{% url 'informes:list' %}" class="btn btn-secondary ml-2">Limpiar</a>
+  </form>
 {% endif %}
 
 <table class="table table-striped">
