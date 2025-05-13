@@ -7,6 +7,8 @@ from .models import Informe
 from usuarios.models import Usuario
 from eventos.models import AsistenciaEntrenamiento, AsistenciaTorneo, Evento
 from utils.role_mixins import AdminEntrenadorRequiredMixin, SoloPropioMixin, UsuarioSessionMixin
+from django.core.exceptions import PermissionDenied
+
 
 
 class InformeListView(AdminEntrenadorRequiredMixin, ListView):
@@ -27,10 +29,21 @@ class InformeDetailAdminView(AdminEntrenadorRequiredMixin, DetailView):
     context_object_name = 'informe'
 
 
-class InformeDetailMiembroView(SoloPropioMixin, DetailView):
+class InformeDetailMiembroView(UsuarioSessionMixin, DetailView):
     model = Informe
     template_name = 'informes/informe_detail.html'
     context_object_name = 'informe'
+
+    def dispatch(self, request, *args, **kwargs):
+        current_user = self.get_current_user(request)
+        if not current_user:
+            return redirect('usuarios:login')
+
+        informe = self.get_object()
+        if informe.usuario.id != current_user.id:
+            raise PermissionDenied("No tienes permiso para ver este informe.")
+
+        return super().dispatch(request, *args, **kwargs)
 
 
 class InformeCreateView(AdminEntrenadorRequiredMixin, CreateView):

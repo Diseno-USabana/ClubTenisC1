@@ -43,34 +43,15 @@ class AdminRequiredForListMixin(UsuarioSessionMixin):
 
 class SoloPropioMixin(UsuarioSessionMixin):
     """
-    Permite acceso solo si el usuario es el dueño del objeto (Pago o Informe),
-    o si es administrador.
+    Para vistas de detalle (y edición/eliminación) que deben ser visibles solo
+    por el mismo usuario o por un admin.
     """
     def dispatch(self, request, *args, **kwargs):
         current_user = self.get_current_user(request)
         if not current_user:
             return redirect('usuarios:login')
-
-        requested_id = None
-        if 'usuario_id' in kwargs:
-            requested_id = kwargs['usuario_id']
-        elif 'pk' in kwargs:
-            # Intentar obtener usuario desde Pago
-            try:
-                pago = Pago.objects.get(pk=kwargs['pk'])
-                requested_id = pago.usuario.id
-            except Pago.DoesNotExist:
-                pass
-
-            # Intentar obtener usuario desde Informe si Pago falló
-            if requested_id is None:
-                try:
-                    informe = Informe.objects.get(pk=kwargs['pk'])
-                    requested_id = informe.usuario.id
-                except Informe.DoesNotExist:
-                    raise PermissionDenied("El recurso solicitado no existe.")
-
+        requested_id = kwargs.get('usuario_id')
+        # Si no es admin y está intentando acceder a un usuario distinto, se bloquea el acceso.
         if current_user.rol != 'admin' and current_user.id != requested_id:
-            raise PermissionDenied("No tienes permiso para ver o modificar este recurso.")
-
+            raise PermissionDenied("No tienes permiso para ver o modificar este usuario.")
         return super().dispatch(request, *args, **kwargs)
