@@ -1,13 +1,58 @@
-{% extends "_base.html" %}
-{% block title %}Nuevo Pago{% endblock %}
+{% extends '_base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'pagos/pago_form.css' %}">
+
+{% endblock %}
 
 {% block content %}
-<h1>Nuevo Pago</h1>
+<div class="pago-form-wrapper">
+  <div class="form-container">
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Guardar</button>
-    <a href="{% url 'pagos:list' %}" class="btn btn-secondary">Cancelar</a>
-</form>
+    <h1 class="text-brown">💰 Nuevo Pago</h1>
+    <hr>
+
+    <form method="post" id="usuarioForm" novalidate>
+      {% csrf_token %}
+
+      <div class="campo">
+        <label for="{{ form.usuario.id_for_label }}">{{ form.usuario.label }}</label>
+        {{ form.usuario }}{{ form.usuario.errors }}
+      </div>
+
+      <div class="campo">
+        <label for="{{ form.concepto.id_for_label }}">{{ form.concepto.label }}</label>
+        {{ form.concepto }}{{ form.concepto.errors }}
+      </div>
+
+      <div class="campo">
+        <label for="{{ form.fecha.id_for_label }}">{{ form.fecha.label }}</label>
+        {{ form.fecha }}{{ form.fecha.errors }}
+      </div>
+
+      <div class="campo">
+        <label for="{{ form.monto.id_for_label }}">{{ form.monto.label }}</label>
+        {{ form.monto }}{{ form.monto.errors }}
+      </div>
+
+      <div class="campo">
+        <label for="{{ form.anio.id_for_label }}">{{ form.anio.label }}</label>
+        {{ form.anio }}{{ form.anio.errors }}
+      </div>
+
+      <div class="campo">
+        <label for="{{ form.mes.id_for_label }}">{{ form.mes.label }}</label>
+        {{ form.mes }}{{ form.mes.errors }}
+      </div>
+
+      <div class="form-buttons">
+        <button type="submit" class="btn btn-brown">💾 Guardar</button>
+        <a href="{% url 'pagos:list' %}" class="btn btn-secondary">❌ Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="{% static 'pagos/pago_form.js' %}"></script>
 {% endblock %}

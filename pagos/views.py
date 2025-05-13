@@ -89,28 +89,34 @@ def vista_crear_pago(request):
         messages.error(request, "Debes iniciar sesión para registrar un pago.")
         return redirect('usuarios:login')
 
-    if usuario.rol == 'admin':
-        # Admin puede registrar pago para cualquier usuario desde el form completo
-        if request.method == "POST":
-            form = PagoForm(request.POST)
-            if form.is_valid():
-                form.save()
-                messages.success(request, "Pago creado correctamente.")
-                return redirect('pagos:list')
-        else:
-            form = PagoForm()
-        return render(request, "pagos/pago_form_admin.html", {"form": form})
-    
-    else:
-        # Miembro solo registra su propio pago
-        if request.method == "POST":
-            form = PagoForm(request.POST)
-            if form.is_valid():
-                pago = form.save(commit=False)
+    es_admin = usuario.rol == 'admin'
+
+    if request.method == "POST":
+        form = PagoForm(request.POST)
+        if form.is_valid():
+            pago = form.save(commit=False)
+
+            if not es_admin:
+                # Miembros no deben modificar el campo usuario
                 pago.usuario = usuario
-                pago.save()
-                messages.success(request, "Pago creado correctamente.")
+
+                # Solo la mensualidad usa anio/mes
+                if pago.concepto == "mensualidad":
+                    pago.anio = pago.fecha.year
+                    pago.mes = pago.fecha.month
+                else:
+                    pago.anio = None
+                    pago.mes = None
+
+            pago.save()
+            messages.success(request, "Pago creado correctamente.")
+            
+            if es_admin:
+                return redirect('pagos:list')
+            else:
                 return redirect('pagos:mis_pagos', usuario_id=usuario.id)
-        else:
-            form = PagoForm()
-        return render(request, "pagos/pago_form.html", {"form": form})
+    else:
+        form = PagoForm()
+
+    template = "pagos/pago_form_admin.html" if es_admin else "pagos/pago_form.html"
+    return render(request, template, {"form": form})
