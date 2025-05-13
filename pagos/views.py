@@ -96,14 +96,23 @@ def vista_crear_pago(request):
         if form.is_valid():
             pago = form.save(commit=False)
 
+            # 1) Asignar usuario si no es admin
             if not es_admin:
                 pago.usuario = usuario
-                if pago.concepto == "mensualidad":
+
+            # 2) Año/mes: preferir valores del formulario si vienen
+            if pago.concepto == "mensualidad":
+                anio_form = form.cleaned_data.get('anio')
+                mes_form = form.cleaned_data.get('mes')
+                if anio_form and mes_form:
+                    pago.anio = anio_form
+                    pago.mes = mes_form
+                else:
                     pago.anio = pago.fecha.year
                     pago.mes = pago.fecha.month
-                else:
-                    pago.anio = None
-                    pago.mes = None
+            else:
+                pago.anio = None
+                pago.mes = None
 
             pago.save()
             messages.success(request, "Pago creado correctamente.")
@@ -111,6 +120,7 @@ def vista_crear_pago(request):
                 return redirect('pagos:list')
             else:
                 return redirect('pagos:mis_pagos', usuario_id=usuario.id)
+
     else:
         form = PagoForm()
 
