@@ -35,9 +35,9 @@
       </ul>
 
       <div class="acciones text-center">
-        <a href="{% url 'usuarios:list' %}" class="btn-secondary">🔙 Regresar</a>
         <a href="{% url 'usuarios:edit' usuario.id %}" class="btn-brown">✏️ Editar</a>
         {% if current_user and current_user.rol == 'admin' %}
+          <a href="{% url 'usuarios:list' %}" class="btn-secondary">🔙 Regresar</a>
           <a href="{% url 'usuarios:delete' usuario.id %}" class="btn-danger">🗑️ Eliminar</a>
         {% endif %}
       </div>
