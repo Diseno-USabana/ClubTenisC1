@@ -5,7 +5,6 @@
 
 {% if current_user.rol == "admin" or current_user.rol == "entrenador" %}
   <div style="margin-bottom: 20px;">
-    <a href="{% url 'informes:create' %}" class="btn btn-primary">Crear Informe Manual</a>
     <a href="{% url 'informes:generar' %}" class="btn btn-success">Generar Informes del Mes</a>
   </div>
 

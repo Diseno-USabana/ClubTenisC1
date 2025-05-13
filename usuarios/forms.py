@@ -1,6 +1,7 @@
 from django import forms
 from .models import Usuario
 from datetime import date
+import re
 
 
 TIPOS_DOCUMENTO = [
@@ -165,8 +166,14 @@ class UsuarioForm(forms.ModelForm):
             self.add_error("rol", "El rol es obligatorio.")
         if not nombre:
             self.add_error("nombre", "El nombre es obligatorio.")
+        else:
+            if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$', nombre):
+                self.add_error("nombre", "El nombre solo puede contener letras y espacios.")
         if not apellidos:
             self.add_error("apellidos", "Los apellidos son obligatorios.")
+        else:
+            if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$', apellidos):
+                self.add_error("apellidos", "Los apellidos solo pueden contener letras y espacios.")
         if not correo:
             self.add_error("correo", "El correo es obligatorio.")
         
@@ -184,7 +191,7 @@ class UsuarioForm(forms.ModelForm):
         if not estado:
             self.add_error("estado", "El estado es obligatorio.")
 
-        if self.modo == "register":
+        if self.modo in ["register", "create"]:
             password_confirm = cleaned_data.get("password_confirm")
             if password and password_confirm and password != password_confirm:
                 self.add_error("password_confirm", "Las contraseñas no coinciden.")
@@ -210,10 +217,11 @@ class UsuarioForm(forms.ModelForm):
             if not cleaned_data.get("fecha_nacimiento"):
                 self.add_error("fecha_nacimiento", "La fecha de nacimiento es obligatoria para miembros.")
             else:
-                from datetime import date
                 today = date.today()
                 age = today.year - cleaned_data["fecha_nacimiento"].year
-                if age >= 22 and not cleaned_data.get("nivel"):
+                if age < 5 or age > 116:
+                    self.add_error("fecha_nacimiento", "La edad debe estar entre 5 y 116 años.")
+                elif age >= 22 and not cleaned_data.get("nivel"):
                     self.add_error("nivel", "Debes seleccionar el nivel de juego para adultos.")
         else:
             self.add_error("rol", "Rol no válido o no reconocido.")
