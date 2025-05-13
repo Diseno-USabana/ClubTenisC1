@@ -107,7 +107,10 @@ def vista_crear_pago(request):
 
             pago.save()
             messages.success(request, "Pago creado correctamente.")
-            return redirect('pagos:list' if es_admin else 'pagos:mis_pagos', usuario_id=usuario.id)
+            if es_admin:
+                return redirect('pagos:list')
+            else:
+                return redirect('pagos:mis_pagos', usuario_id=usuario.id)
     else:
         form = PagoForm()
 
