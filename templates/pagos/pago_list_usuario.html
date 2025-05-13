@@ -9,7 +9,6 @@
       <th>Fecha</th>
       <th>Concepto</th>
       <th>Monto</th>
-      <th>Estado</th>
     </tr>
   </thead>
   <tbody>
@@ -18,7 +17,6 @@
       <td>{{ pago.fecha }}</td>
       <td>{{ pago.concepto }}</td>
       <td>${{ pago.monto|floatformat:0 }}</td>
-      <td>{{ pago.estado }}</td>
     </tr>
     {% empty %}
     <tr>
