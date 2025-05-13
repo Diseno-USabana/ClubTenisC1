@@ -10,6 +10,7 @@ from .views import (
     UsuarioCreateView,
     UsuarioPasswordUpdateView,
     RegistrationView,
+    NosotrosView,
 )
 
 app_name = 'usuarios'
@@ -19,10 +20,12 @@ urlpatterns = [
     path('logout/', CustomLogoutView.as_view(), name='logout'),
     path('register/', RegistrationView.as_view(), name='register'),
     path('create/', UsuarioCreateView.as_view(), name='create'),
-    path('', UsuarioListView.as_view(), name='list'),
+    path('userlist/', UsuarioListView.as_view(), name='list'),
+    path('', NosotrosView.as_view(), name='nosotros'),
     path('user/<int:usuario_id>/', UsuarioDetailView.as_view(), name='detail'),
     path('<int:usuario_id>/edit/', UsuarioUpdateView.as_view(), name='edit'),
     path('<int:usuario_id>/delete/', UsuarioDeleteView.as_view(), name='delete'),
+
 
     path('<int:usuario_id>/cambiar-clave/', UsuarioPasswordUpdateView.as_view(), name='change_password'),
 ]

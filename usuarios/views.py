@@ -1,6 +1,6 @@
 # usuarios/views.py
 from django.urls import reverse_lazy, reverse
-from django.views.generic import ListView, DetailView, UpdateView, DeleteView, CreateView
+from django.views.generic import ListView, DetailView, UpdateView, DeleteView, CreateView, TemplateView
 from django.views.generic.edit import FormView
 from django.contrib import messages
 from .models import Usuario, Categoria
@@ -386,3 +386,6 @@ class UsuarioPasswordUpdateView(SoloPropioMixin, View):
             return redirect('usuarios:detail', usuario_id=usuario.id)
 
         return render(request, 'usuarios/cambiar_password.html', {'usuario': usuario})
+
+class NosotrosView(TemplateView):
+    template_name = 'usuarios/nosotros.html'
