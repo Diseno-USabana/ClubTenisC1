@@ -78,6 +78,34 @@
             animation: fadeInDown 1s;
         }
 
+    
+
+        .picture-secundaria {
+            background: url('/static/img/tenis3.jpg') center center / cover no-repeat;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .picture-secundaria::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .picture-secundaria h1 {
+            position: relative;
+            color: #fff;
+            font-size: 3rem;
+            z-index: 1;
+            animation: fadeInDown 1s;
+        }
+
+
+
         .card-custom {
             border: none;
             border-radius: 1rem;
@@ -141,19 +169,20 @@
     </style>
 </head>
 
-<body class="{% if request.resolver_match.url_name == 'login' or request.resolver_match.url_name == 'register' %}login-page{% endif %}">
+<body class="d-flex flex-column min-vh-100 {% if request.resolver_match.url_name == 'login' or request.resolver_match.url_name == 'register' %}login-page{% endif %}">
+
 
     {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' %}
     <header>
         <nav class="navbar navbar-expand-lg">
             <div class="container">
-                <a class="navbar-brand" href="{% url 'usuarios:list' %}">TopSpin Tracker</a>
+                <a class="navbar-brand" href="{% url 'usuarios:nosotros' %}">TopSpin Tracker</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
                     <span class="navbar-toggler-icon text-white"><i class="fas fa-bars"></i></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav mr-auto">
-                        <li class="nav-item"><a class="nav-link" href="{% url 'usuarios:list' %}">Nosotros</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'usuarios:nosotros' %}">Nosotros</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'eventos:entrenamientos_list' %}">Entrenamientos</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'eventos:torneos_list' %}">Torneos</a></li>
                     </ul>
@@ -194,7 +223,8 @@
     </header>
     {% endif %}
 
-    <main class="container" data-aos="fade-up">
+    <main class="container flex-grow-1" data-aos="fade-up">
+
         {% block content %}{% endblock %}
     </main>
 
