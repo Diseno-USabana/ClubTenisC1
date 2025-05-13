@@ -4,6 +4,15 @@
 {% block content %}
 <h1>Registrar Mensualidad</h1>
 
+<!-- Mostrar mensajes flash -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
 <div class="alert alert-info">
     La mensualidad tiene un valor fijo de <strong>$170.000</strong> pesos colombianos. <br>
 </div>
