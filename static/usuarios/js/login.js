@@ -88,6 +88,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 return false;
             }
 
+            
+            const nyaPattern = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/;
+            // validamos el valor del input, no el elemento
+            if (!nyaPattern.test(nombre.value.trim())) {
+                e.preventDefault();
+                console.log("valor de nombre inválido:", nombre.value);
+                alert("El nombre solo puede contener letras y espacios.");
+                return false;
+            }
+            if (!nyaPattern.test(apellidos.value.trim())) {
+                e.preventDefault();
+                console.log("valor de apellidos inválido:", apellidos.value);
+                alert("Los apellidos solo pueden contener letras y espacios.");
+                return false;
+            }
+            
+
+
             // Validar formato de correo
             var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailPattern.test(correo.value)) {
@@ -129,6 +147,14 @@ document.addEventListener("DOMContentLoaded", function () {
             var currentYear = new Date().getFullYear();
             var age = currentYear - birthYear;
             console.log("Edad en submit:", age);
+
+            // 🚨 VALIDACIÓN DE RANGO DE EDAD 🚨
+            if (isNaN(age) || age < 5 || age > 116) {
+                e.preventDefault();
+                alert("La edad debe estar entre 5 y 116 años.");
+                return false;
+            }
+
             // Si es adulto (mayor a 21), el campo "nivel" es obligatorio
             if (age > 21) {
                 if (!nivel || !nivel.value) {
@@ -137,6 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     return false;
                 }
             }
+
         }
     });
 });
