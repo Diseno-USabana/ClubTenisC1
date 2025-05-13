@@ -194,12 +194,6 @@
     </header>
     {% endif %}
 
-    {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' %}
-    <div class="picture">
-        <h1 class="animate__animated animate__fadeInDown">Bienvenido a TopSpin Tracker</h1>
-    </div>
-    {% endif %}
-
     <main class="container" data-aos="fade-up">
         {% block content %}{% endblock %}
     </main>
