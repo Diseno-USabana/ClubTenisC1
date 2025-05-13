@@ -16,8 +16,8 @@
       <option value="">-- Todos los usuarios --</option>
       {% for u in usuarios %}
         <option value="{{ u.id }}" {% if filtros.usuario == u.id|stringformat:"s" %}selected{% endif %}>
-          {{ u.nombres }} {{ u.apellidos }}
-        </option>
+        {{ u.nombre|default:"" }} {{ u.apellidos|default:"" }}
+
       {% endfor %}
     </select>
     <button type="submit" class="btn btn-primary">Filtrar</button>
