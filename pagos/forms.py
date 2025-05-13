@@ -13,19 +13,27 @@ class PagoForm(forms.ModelForm):
         cleaned_data = super().clean()
         usuario = cleaned_data.get('usuario')
         concepto = cleaned_data.get('concepto')
-        fecha_pago = cleaned_data.get('fecha_pago')
+        anio = cleaned_data.get('anio')
+        mes = cleaned_data.get('mes')
 
+        if not usuario or not concepto:
+            return cleaned_data  # evitar errores si faltan datos básicos
+
+        # ✅ Validación de matrícula única
         if concepto == 'matricula':
             existe_matricula = Pago.objects.filter(usuario=usuario, concepto='matricula').exists()
             if existe_matricula:
                 raise forms.ValidationError("Este usuario ya tiene una matrícula registrada.")
 
-        if concepto == 'mensualidad' and fecha_pago:
+        # ✅ Validación de mensualidad por mes y año
+        if concepto == 'mensualidad' and anio and mes:
             mismo_mes = Pago.objects.filter(
                 usuario=usuario,
                 concepto='mensualidad',
-                fecha_pago__year=fecha_pago.year,
-                fecha_pago__month=fecha_pago.month
+                anio=anio,
+                mes=mes
             ).exists()
             if mismo_mes:
-                raise forms.ValidationError("Este usuario ya pagó la mensualidad de ese mes.")
+                raise forms.ValidationError(f"Este usuario ya pagó la mensualidad de {mes}/{anio}.")
+
+        return cleaned_data
