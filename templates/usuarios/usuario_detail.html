@@ -1,54 +1,47 @@
 {% extends '_base.html' %}
 {% load static %}
 
-{% block content %}
-
+{% block extra_css %}
 <link rel="stylesheet" href="{% static 'usuarios/css/usuario_detail.css' %}">
+{% endblock %}
 
-<main class="container mt-5" data-aos="fade-up">
+{% block content %}
+<div class="usuario-detail-wrapper">
+  <div class="detail-container" data-aos="fade-up">
     {% if usuario %}
-        <h1 class="text-center text-brown">👤 Información del Usuario</h1>
-        <hr>
-        <ul class="list-group list-group-flush">
-            {% if usuario.rol in "admin entrenador miembro" %}
-                <li class="list-group-item"><strong>📛 Nombre:</strong> {{ usuario.nombre }}</li>
-                <li class="list-group-item"><strong>📝 Apellidos:</strong> {{ usuario.apellidos }}</li>
-                <li class="list-group-item"><strong>📧 Correo:</strong> {{ usuario.correo }}</li>
-            {% endif %}
+      <h1 class="text-brown">👤 Información del Usuario</h1>
+      <hr>
+      <ul class="user-info-list">
+        {% if usuario.rol in "admin entrenador miembro" %}
+          <li><strong>📛 Nombre:</strong> {{ usuario.nombre }}</li>
+          <li><strong>📝 Apellidos:</strong> {{ usuario.apellidos }}</li>
+          <li><strong>📧 Correo:</strong> {{ usuario.correo }}</li>
+        {% endif %}
 
-            {% if usuario.rol in "entrenador miembro" %}
-                <li class="list-group-item"><strong>📞 Teléfono:</strong> {{ usuario.telefono }}</li>
-                <li class="list-group-item"><strong>🆔 Tipo de Documento:</strong> {{ usuario.tipo_documento }}</li>
-                <li class="list-group-item"><strong>🔢 Número de Documento:</strong> {{ usuario.num_documento }}</li>
-            {% endif %}
+        {% if usuario.rol in "entrenador miembro" %}
+          <li><strong>📞 Teléfono:</strong> {{ usuario.telefono }}</li>
+          <li><strong>🆔 Tipo de Documento:</strong> {{ usuario.tipo_documento }}</li>
+          <li><strong>🔢 Número de Documento:</strong> {{ usuario.num_documento }}</li>
+        {% endif %}
 
-            {% if usuario.rol == "miembro" %}
-                <li class="list-group-item"><strong>🎂 Fecha de Nacimiento:</strong> {{ usuario.fecha_nacimiento }}</li>
-                <li class="list-group-item"><strong>🎾 Categoría:</strong> {{ usuario.id_categoria.nombre }}</li>
-            {% endif %}
+        {% if usuario.rol == "miembro" %}
+          <li><strong>🎂 Fecha de Nacimiento:</strong> {{ usuario.fecha_nacimiento }}</li>
+          <li><strong>🎾 Categoría:</strong> {{ usuario.id_categoria.nombre }}</li>
+        {% endif %}
 
-            {% if usuario.rol in "admin entrenador miembro" %}
-                <li class="list-group-item"><strong>🔵 Estado:</strong> {{ usuario.estado }}</li>
-            {% endif %}
-        </ul>
+        {% if usuario.rol in "admin entrenador miembro" %}
+          <li><strong>🔵 Estado:</strong> {{ usuario.estado }}</li>
+        {% endif %}
+      </ul>
 
-        <div class="text-center mt-4">
-            <a href="{% url 'usuarios:list' %}" class="btn btn-secondary">🔙 Regresar</a>
-            <a href="{% url 'usuarios:edit' usuario.id %}" class="btn btn-brown">✏️ Editar</a>
-            {% if current_user and current_user.rol == 'admin' %}
-                <a href="{% url 'usuarios:delete' usuario.id %}" class="btn btn-danger">🗑️ Eliminar</a>
-            {% endif %}
-        </div>
-    </div>
+      <div class="acciones text-center">
+        <a href="{% url 'usuarios:list' %}" class="btn-secondary">🔙 Regresar</a>
+        <a href="{% url 'usuarios:edit' usuario.id %}" class="btn-brown">✏️ Editar</a>
+        {% if current_user and current_user.rol == 'admin' %}
+          <a href="{% url 'usuarios:delete' usuario.id %}" class="btn-danger">🗑️ Eliminar</a>
+        {% endif %}
+      </div>
     {% endif %}
+  </div>
 </div>
-
-<style>
-    .text-brown { color: #6F4E37; }
-    .bg-light { background-color: #f8f9fa; }
-    .btn-brown { background-color: #6F4E37; color: white; border: 2px solid #5A3C2E; padding: 10px 20px; }
-    .btn-brown:hover { background-color: #5A3C2E; }
-    .card { border-radius: 12px; }
-    .list-group-item { border: none; }
-</style>
 {% endblock %}
